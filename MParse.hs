@@ -11,6 +11,8 @@ import           Data.Time
 import           System.Locale      ( defaultTimeLocale )
 import           System.Environment ( getArgs )
 
+import MParse.MongoParser
+
 
 data LogNamespace =
     NsHealthPoll
