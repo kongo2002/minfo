@@ -14,17 +14,32 @@ import           System.Environment ( getArgs )
 
 
 data LogNamespace =
-    LNHealthPoll
-  | LNInitAndListen
-  | LNConnection Integer
-  | LNOther String
+    NsHealthPoll
+  | NsWebServer
+  | NsTTLMonitor
+  | NsFileAllocator
+  | NsInitAndListen
+  | NsConnection Integer
+  | NsOther String
   deriving ( Show, Eq, Ord )
+
+
+data LogContent =
+    LcQuery QueryInfo
+  | LcOther BS.ByteString
+  deriving ( Show, Eq, Ord )
+
+
+data QueryInfo = QueryInfo
+  { qiNamespace :: String
+  , qiQuery     :: BS.ByteString
+  } deriving ( Show, Eq, Ord )
 
 
 data LogLine = LogLine
   { lTime      :: UTCTime
   , lNamespace :: LogNamespace
-  , lContent   :: BS.ByteString
+  , lContent   :: LogContent
   } deriving ( Show, Eq, Ord )
 
 
@@ -32,9 +47,27 @@ parseLine :: Integer -> Parser LogLine
 parseLine year = do
   d  <- date year
   ns <- parseNamespace <* skipSpace
-  c  <- takeTill isEOL
+  c  <- parseContent
   skipWhile isEOL
   return $ LogLine d ns c
+
+
+parseContent :: Parser LogContent
+parseContent =
+  query <|> other
+ where
+  other = LcOther <$> toEOL
+
+
+query :: Parser LogContent
+query = do
+  _ <- string "query "
+  ns <- BS.unpack <$> takeTill isSpace
+  skipSpace
+  _ <- string "query:"
+  skipSpace
+  q <- toEOL
+  return $ LcQuery $ QueryInfo ns q
 
 
 parseNamespace :: Parser LogNamespace
@@ -47,12 +80,18 @@ namespace =
   initAndListen <|>
   healthPoll <|>
   connection <|>
+  ttlMonitor <|>
+  webServer <|>
+  fileAllocator <|>
   other
  where
-  initAndListen = string "initandlisten" *> pure LNInitAndListen
-  healthPoll    = string "rsHealthPoll" *> pure LNHealthPoll
-  connection    = string "conn" *> (LNConnection <$> num)
-  other = LNOther . BS.unpack <$> takeTill (== ']')
+  initAndListen = string "initandlisten" *> pure NsInitAndListen
+  healthPoll    = string "rsHealthPoll" *> pure NsHealthPoll
+  fileAllocator = string "FileAllocator" *> pure NsFileAllocator
+  ttlMonitor    = string "TTLMonitor" *> pure NsTTLMonitor
+  webServer     = string "websvr" *> pure NsWebServer
+  connection    = string "conn" *> (NsConnection <$> num)
+  other = NsOther . BS.unpack <$> takeTill (== ']')
 
 
 num :: Parser Integer
@@ -65,6 +104,10 @@ num = do
 
 isEOL :: Char -> Bool
 isEOL c = c == '\r' || c == '\n'
+
+
+toEOL :: Parser BS.ByteString
+toEOL = takeTill isEOL
 
 
 date :: Integer -> Parser UTCTime
