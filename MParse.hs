@@ -7,9 +7,8 @@ import           Control.Applicative
 import           Data.Attoparsec.ByteString.Char8
 import qualified Data.ByteString.Char8 as BS
 import           Data.Time
-{- import           Data.Time.Format ( parseTime ) -}
 
-import           System.Locale      ( defaultTimeLocale, iso8601DateFormat )
+import           System.Locale      ( defaultTimeLocale )
 import           System.Environment ( getArgs )
 
 
@@ -64,7 +63,7 @@ query = do
   _ <- string "query "
   ns <- BS.unpack <$> takeTill isSpace
   skipSpace
-  _ <- string "query:"
+  _ <- string "query: "
   skipSpace
   q <- toEOL
   return $ LcQuery $ QueryInfo ns q
