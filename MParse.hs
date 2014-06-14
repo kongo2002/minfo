@@ -11,7 +11,7 @@ import           Data.Time
 import           System.Locale      ( defaultTimeLocale )
 import           System.Environment ( getArgs )
 
-import MParse.MongoParser
+import MParse.BsonParser
 
 
 data LogNamespace =

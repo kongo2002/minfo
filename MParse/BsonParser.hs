@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module MParse.MongoParser where
+module MParse.BsonParser where
 
 import           Prelude hiding ( GT, LT )
 import           Control.Applicative
