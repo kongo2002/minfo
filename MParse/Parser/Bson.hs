@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module MParse.Parser.Bson where
 
 import           Prelude hiding ( GT, LT )

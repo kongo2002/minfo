@@ -43,7 +43,7 @@ parseContent =
 query :: BS.ByteString -> Parser QueryInfo
 query cmd = do
   _ <- string cmd
-  _ <- char ' '
+  _ <- space
   ns <- BS.unpack <$> takeTill isSpace
   skipSpace
   _ <- string "query: "
@@ -79,7 +79,7 @@ namespace =
 
 commandInfos :: Parser [CommandInfo]
 commandInfos =
-  catMaybes <$> ((skipSpace *> commandInfo) `sepBy` char ' ')
+  catMaybes <$> ((skipSpace *> commandInfo) `sepBy` space)
 
 
 commandInfo :: Parser (Maybe CommandInfo)
