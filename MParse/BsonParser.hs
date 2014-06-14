@@ -129,15 +129,36 @@ value end =
 
 operator :: Parser MongoOperator
 operator =
-  char '$' *>
-    (gt <|> lt <|> in' <|> nin <|> and <|> or)
+  char '$' *> choice
+    [ gt
+    , lt
+    , op "ne" NE
+    , op "in" In
+    , op "nin" NotIn
+    , op "all" All
+    , op "elemMatch" ElemMatch
+    , op "size" Size
+    , op "exists" Exists
+    , op "and" And
+    , op "or" Or
+    , op "not" Not
+    , op "nor" Nor
+    , op "where" Where
+    , op "regex" Regex
+    , op "mod" Mod
+    , op "text" Text
+    , op "geoWithin" GeoWithin
+    , op "geoIntersects" GeoIntersects
+    , op "near" Near
+    , op "nearSphere" NearSphere
+    , op "type" Type
+    , op "meta" Meta
+    , op "slice" Slice
+    ]
  where
-  gt  = string "gt" *> ((char 'e' *> pure GTE) <|> pure GT)
-  lt  = string "lt" *> ((char 'e' *> pure LTE) <|> pure LT)
-  in' = string "in" *> pure In
-  nin = string "nin" *> pure NotIn
-  and = string "and" *> pure And
-  or  = string "or" *> pure Or
+  op s c = string s *> pure c
+  gt     = string "gt" *> ((char 'e' *> pure GTE) <|> pure GT)
+  lt     = string "lt" *> ((char 'e' *> pure LTE) <|> pure LT)
 
 
 -- vim: set et sw=2 sts=2 tw=80:
