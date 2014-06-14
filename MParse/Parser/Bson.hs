@@ -1,61 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
-module MParse.BsonParser where
+module MParse.Parser.Bson where
 
 import           Prelude hiding ( GT, LT )
 import           Control.Applicative
-
 import           Data.Attoparsec.ByteString.Char8
 import qualified Data.ByteString.Char8 as BS
 
-
-data MongoOperator =
-  -- comparison
-    GT
-  | GTE
-  | In
-  | LT
-  | LTE
-  | NE
-  | NotIn
-  -- logical
-  | Or
-  | And
-  | Not
-  | Nor
-  -- element
-  | Exists
-  | Type
-  -- evaluation
-  | Mod
-  | Regex
-  | Text
-  | Where
-  -- geospatial
-  | GeoWithin
-  | GeoIntersects
-  | Near
-  | NearSphere
-  -- array
-  | All
-  | ElemMatch
-  | Size
-  -- projection
-  | Meta
-  | Slice
-  deriving ( Show, Eq, Ord )
-
-
-data MongoKey =
-    MKey String
-  | MOperator MongoOperator
-  deriving ( Show, Eq, Ord )
-
-
-data MongoElement =
-    MValue
-  | MList [MongoElement]
-  | MObject [(MongoKey, MongoElement)]
-  deriving ( Show, Eq, Ord )
+import           MParse.Types
 
 
 parseDocument :: Parser MongoElement
@@ -66,14 +17,14 @@ parseDocument =
 object :: Parser (MongoKey, MongoElement)
 object = do
   skipSpace
-  optional $ char '"'
+  _ <- optional $ char '"'
   k <- key
-  optional $ char '"'
+  _ <- optional $ char '"'
   skipSpace
-  char ':'
+  _ <- char ':'
   skipSpace
   v <- element '}'
-  return $ (k, v)
+  return (k, v)
 
 
 objects :: Parser [(MongoKey, MongoElement)]
@@ -86,6 +37,7 @@ list =
   between '[' ']' (element ']' `sepBy` (char ',' <* skipSpace))
 
 
+between :: Char -> Char -> Parser a -> Parser a
 between start end parser =
   char start *> (parser <* toEnd)
  where
