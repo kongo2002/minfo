@@ -60,13 +60,22 @@ data LogLine = LogLine
   } deriving ( Show, Eq, Ord )
 
 
-parseLine :: Integer -> Parser LogLine
-parseLine year = do
-  d  <- date year
-  ns <- parseNamespace <* skipSpace
-  c  <- parseContent
-  skipWhile isEOL
-  return $ LogLine d ns c
+loglines :: Integer -> Parser [LogLine]
+loglines year =
+  catMaybes <$> (logline year `sepBy` satisfy isEOL) <* end
+ where
+  end = toEOL *> endOfInput
+
+
+logline :: Integer -> Parser (Maybe LogLine)
+logline year = Just
+  <$> line'
+  <|> toEOL *> pure Nothing
+ where
+  line' = LogLine
+    <$> date year
+    <*> parseNamespace <* skipSpace
+    <*> parseContent
 
 
 parseContent :: Parser LogContent
