@@ -28,6 +28,7 @@ data LogNamespace =
 
 data LogContent =
     LcQuery QueryInfo
+  | LcGetMore QueryInfo
   | LcOther BS.ByteString
   deriving ( Show, Eq, Ord )
 
@@ -50,6 +51,7 @@ data CommandInfo =
   | CiR Integer
   | CiKeyUpdated Integer
   | CiRuntime Integer
+  | CiCursorId Integer
   deriving ( Show, Eq, Ord )
 
 
@@ -80,21 +82,24 @@ logline year = Just
 
 parseContent :: Parser LogContent
 parseContent =
-  query <|> other
+  (LcQuery <$> query "query") <|>
+  (LcGetMore <$> query "getmore") <|>
+  other
  where
   other = LcOther <$> toEOL
 
 
-query :: Parser LogContent
-query = do
-  _ <- string "query "
+query :: BS.ByteString -> Parser QueryInfo
+query cmd = do
+  _ <- string cmd
+  _ <- char ' '
   ns <- BS.unpack <$> takeTill isSpace
   skipSpace
   _ <- string "query: "
   skipSpace
   q <- parseDocument
   ci <- commandInfos
-  return $ LcQuery $ QueryInfo ns q ci
+  return $ QueryInfo ns q ci
 
 
 parseNamespace :: Parser LogNamespace
@@ -129,6 +134,7 @@ commandInfos =
 commandInfo :: Parser (Maybe CommandInfo)
 commandInfo = Just <$> choice
   [ ncom
+  , info "cursorid" CiCursorId
   , info "keyUpdates" CiKeyUpdated
   , info "reslen" CiResLen
   , info "r" CiR
