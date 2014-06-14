@@ -200,9 +200,12 @@ getCurrentYear = do
 
 main :: IO ()
 main = do
-  [time] <- getArgs
+  -- TODO: proper argument parsing
+  [file]   <- getArgs
   thisYear <- getCurrentYear
 
-  print $ parseTime' thisYear time
+  let parse' = loglines thisYear
+
+  print =<< parseOnly parse' <$> BS.readFile file
 
 -- vim: set et sw=2 sts=2 tw=80:
