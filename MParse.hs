@@ -6,6 +6,7 @@ import           Control.Applicative
 
 import           Data.Attoparsec.ByteString.Char8
 import qualified Data.ByteString.Char8 as BS
+import           Data.Maybe         ( catMaybes )
 import           Data.Time
 
 import           System.Locale      ( defaultTimeLocale )
@@ -33,8 +34,23 @@ data LogContent =
 
 data QueryInfo = QueryInfo
   { qiNamespace :: String
-  , qiQuery     :: BS.ByteString
+  , qiQuery     :: MongoElement
+  , qiInfos     :: [CommandInfo]
   } deriving ( Show, Eq, Ord )
+
+
+data CommandInfo =
+    CiNScanned Integer
+  | CiNReturned Integer
+  | CiNToSkip Integer
+  | CiNToReturn Integer
+  | CiNDeleted Integer
+  | CiNInserted Integer
+  | CiResLen Integer
+  | CiR Integer
+  | CiKeyUpdated Integer
+  | CiRuntime Integer
+  deriving ( Show, Eq, Ord )
 
 
 data LogLine = LogLine
@@ -67,8 +83,9 @@ query = do
   skipSpace
   _ <- string "query: "
   skipSpace
-  q <- toEOL
-  return $ LcQuery $ QueryInfo ns q
+  q <- parseDocument
+  ci <- commandInfos
+  return $ LcQuery $ QueryInfo ns q ci
 
 
 parseNamespace :: Parser LogNamespace
@@ -93,6 +110,33 @@ namespace =
   webServer     = string "websvr" *> pure NsWebServer
   connection    = string "conn" *> (NsConnection <$> num)
   other = NsOther . BS.unpack <$> takeTill (== ']')
+
+
+commandInfos :: Parser [CommandInfo]
+commandInfos =
+  catMaybes <$> ((skipSpace *> commandInfo) `sepBy` char ' ')
+
+
+commandInfo :: Parser (Maybe CommandInfo)
+commandInfo = Just <$> choice
+  [ ncom
+  , info "keyUpdates" CiKeyUpdated
+  , info "reslen" CiResLen
+  , info "r" CiR
+  , runtime
+  ] <|> unknown
+ where
+  info s ctor = ctor <$> (string s *> char ':' *> num)
+  unknown = skipWhile (not . isSpace) *> return Nothing
+  ncom = char 'n' *> choice
+    [ info "returned" CiNReturned
+    , info "scanned" CiNScanned
+    , info "inserted" CiNInserted
+    , info "deleted" CiNDeleted
+    , info "toreturn" CiNToReturn
+    , info "toskip" CiNToSkip
+    ]
+  runtime = CiRuntime <$> num <* string "ms"
 
 
 num :: Parser Integer
@@ -120,11 +164,11 @@ date year = do
 
 
 parseTime' :: Integer -> String -> Maybe UTCTime
-parseTime' year str =
+parseTime' year input =
   fmap corrected parsed
  where
   timeFormat = "%a %b %e %T%Q"
-  parsed = parseTime defaultTimeLocale timeFormat str
+  parsed = parseTime defaultTimeLocale timeFormat input
 
   corrected u =
     UTCTime day' $ utctDayTime u

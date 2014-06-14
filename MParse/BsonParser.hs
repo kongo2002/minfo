@@ -58,6 +58,11 @@ data MongoElement =
   deriving ( Show, Eq, Ord )
 
 
+parseDocument :: Parser MongoElement
+parseDocument =
+  skipSpace *> element '}' <* skipSpace
+
+
 object :: Parser (MongoKey, MongoElement)
 object = do
   skipSpace
