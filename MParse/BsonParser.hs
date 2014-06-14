@@ -67,24 +67,33 @@ object = do
   skipSpace
   char ':'
   skipSpace
-  v <- value '}'
+  v <- element '}'
   return $ (k, v)
 
 
-elements :: Parser [(MongoKey, MongoElement)]
-elements =
+objects :: Parser [(MongoKey, MongoElement)]
+objects =
   between '{' '}' (object `sepBy` (char ',' <* skipSpace))
 
 
 list :: Parser [MongoElement]
 list =
-  between '[' ']' (value ']' `sepBy` (char ',' <* skipSpace))
+  between '[' ']' (element ']' `sepBy` (char ',' <* skipSpace))
 
 
 between start end parser =
   char start *> (parser <* toEnd)
  where
   toEnd = skipWhile (/= end) *> char end
+
+
+str :: Parser String
+str =
+  char '"' *> many character <* char '"'
+ where
+  character  = (char '\\' *> escape) <|> satisfy (`BS.notElem` "\"\\")
+  escape     = choice $ zipWith decode "bnfrt\\\"/" "\b\n\f\r\t\\\"/"
+  decode c r = r <$ char c
 
 
 key :: Parser MongoKey
@@ -96,13 +105,21 @@ key =
   keyEnd c = isSpace c || c == ':' || inClass "'\"" c
 
 
+element :: Char -> Parser MongoElement
+element end =
+  skipSpace *> element'
+ where
+  element' =
+    MObject <$> objects <|>
+    MList <$> list <|>
+    value end
+
+
 value :: Char -> Parser MongoElement
 value end =
-  MObject <$> elements <|>
-  MList <$> list <|>
-  (skipWhile valueEnd *> return MValue)
+  (str <|> (BS.unpack <$> takeTill valueEnd)) *> return MValue
  where
-  valueEnd c = c /= end && c /= ','
+  valueEnd c = c == end || c == ','
 
 
 operator :: Parser MongoOperator
