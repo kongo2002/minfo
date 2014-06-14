@@ -45,25 +45,21 @@ data MongoOperator =
   deriving ( Show, Eq, Ord )
 
 
-data MongoElement =
-  ME MongoKey MongoValue
-  deriving ( Show, Eq, Ord )
-
-
 data MongoKey =
     MKey String
   | MOperator MongoOperator
   deriving ( Show, Eq, Ord )
 
 
-data MongoValue =
+data MongoElement =
     MValue
   | MList [MongoElement]
+  | MObject [(MongoKey, MongoElement)]
   deriving ( Show, Eq, Ord )
 
 
-element :: Parser MongoElement
-element = do
+object :: Parser (MongoKey, MongoElement)
+object = do
   skipSpace
   optional $ char '"'
   k <- key
@@ -71,15 +67,24 @@ element = do
   skipSpace
   char ':'
   skipSpace
-  v <- value
-  return $ ME k v
+  v <- value '}'
+  return $ (k, v)
 
 
-elements :: Parser [MongoElement]
+elements :: Parser [(MongoKey, MongoElement)]
 elements =
-  char '{' *> (element `sepBy` (char ',' <* skipSpace)) <* toEnd
+  between '{' '}' (object `sepBy` (char ',' <* skipSpace))
+
+
+list :: Parser [MongoElement]
+list =
+  between '[' ']' (value ']' `sepBy` (char ',' <* skipSpace))
+
+
+between start end parser =
+  char start *> (parser <* toEnd)
  where
-  toEnd = skipWhile (/= '}') *> char '}'
+  toEnd = skipWhile (/= end) *> char end
 
 
 key :: Parser MongoKey
@@ -91,12 +96,13 @@ key =
   keyEnd c = isSpace c || c == ':' || inClass "'\"" c
 
 
-value :: Parser MongoValue
-value =
-  MList <$> elements <|>
-  skipWhile valueEnd *> return MValue
+value :: Char -> Parser MongoElement
+value end =
+  MObject <$> elements <|>
+  MList <$> list <|>
+  (skipWhile valueEnd *> return MValue)
  where
-  valueEnd = notInClass ",{}"
+  valueEnd c = c /= end && c /= ','
 
 
 operator :: Parser MongoOperator
