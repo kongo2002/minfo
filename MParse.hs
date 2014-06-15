@@ -42,15 +42,15 @@ aggregate ls =
     key       = (qiNamespace qi, qiQuery qi)
 
 
-output :: QueryMap -> IO ()
+output :: QueryMap -> BS.ByteString
 output qm =
   -- TODO: do not intermingle IO and pretty printing
-  sequence_ $ M.foldrWithKey go [] qm
+  M.foldrWithKey go BS.empty qm
  where
-  go (ns, q) (c, mi, ma, s, ms) acc = (do
-    BS.putStr ns
-    BS.putStr ": "
-    BL.putStrLn $ encodeLBS q) : acc
+  go (ns, q) (c, mi, ma, s, ms) acc =
+    let q'  = BS.concat $ BL.toChunks $ encodeLBS q
+        str = ns `BS.append` ": " `BS.append` q' `BS.append` "\n"
+    in acc `BS.append` str
 
 
 getMs :: [CommandInfo] -> (Int, [Int])
@@ -70,7 +70,9 @@ main = do
   [file]   <- getArgs
   thisYear <- getCurrentYear
 
-  output =<< (aggregate . parseFile thisYear) <$> BL.readFile file
+  BS.putStrLn =<< process thisYear <$> BL.readFile file
+ where
+  process y = output . aggregate . parseFile y
 
 
 -- vim: set et sw=2 sts=2 tw=80:
