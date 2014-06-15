@@ -51,6 +51,7 @@ query cmd = do
   _ <- string "query: "
   spc
   q <- parseDocument
+  spc
   ci <- commandInfos
   toeol
   return $ QueryInfo ns q ci
@@ -82,7 +83,7 @@ namespace =
 
 commandInfos :: Parser [CommandInfo]
 commandInfos =
-  catMaybes <$> ((spc *> commandInfo) `sepBy'` char ' ')
+  catMaybes <$> (commandInfo `sepBy'` char ' ')
 
 
 commandInfo :: Parser (Maybe CommandInfo)
