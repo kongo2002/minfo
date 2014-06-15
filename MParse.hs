@@ -15,7 +15,7 @@ import MParse.Types
 
 
 type MapKey   = (BS.ByteString, MongoElement)
-type QueryMap = M.Map MapKey (Int, [Int])
+type QueryMap = M.Map MapKey (Int, Int, Int, Integer, [Int])
 
 
 getCurrentYear :: IO Integer
@@ -28,24 +28,28 @@ aggregate :: [LogLine] -> QueryMap
 aggregate ls =
   M.fromListWith group ls'
  where
-  -- calculate length on-the-fly
-  group (_, [x]) (c, acc) = (c+1, x:acc)
+  -- running calculation of length, min, max, sum
+  group (_, _, _, _, [x]) (c, mi, ma, s, acc) =
+   (c+1, min mi x, max ma x, s+toInteger x, x:acc)
   group _ acc   = acc
 
-  key qi  = (qiNamespace qi, qiQuery qi)
-  acc0 qi = (key qi, (1, getMs (qiInfos qi)))
   ls'     = [acc0 qi | LogLine _ _ (LcQuery qi) <- ls]
 
+  acc0 qi = (key, (1, ms, ms, toInteger ms, ms'))
+   where
+    (ms, ms') = getMs (qiInfos qi)
+    key       = (qiNamespace qi, qiQuery qi)
 
-getMs :: [CommandInfo] -> [Int]
+
+getMs :: [CommandInfo] -> (Int, [Int])
 getMs cs =
   get $ find ms cs
  where
   ms (CiRuntime _) = True
   ms _             = False
 
-  get (Just (CiRuntime x)) = [x]
-  get _                    = []
+  get (Just (CiRuntime x)) = (x, [x])
+  get _                    = (0, [])
 
 
 main :: IO ()
