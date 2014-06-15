@@ -3,8 +3,10 @@
 module MParse.Parser where
 
 import           Control.Applicative
+import qualified Data.Attoparsec.ByteString.Lazy as AL
 import           Data.Attoparsec.ByteString.Char8
 import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy as BL
 import           Data.Maybe         ( catMaybes )
 import           Data.Time
 import           System.Locale      ( defaultTimeLocale )
@@ -13,17 +15,17 @@ import MParse.Parser.Bson           ( parseDocument )
 import MParse.Types
 
 
-loglines :: Integer -> Parser [LogLine]
-loglines year =
-  catMaybes <$> (logline year `sepBy'` satisfy isEOL) <* end
- where
-  end = toEOL *> endOfInput
+parseFile :: Integer -> BL.ByteString -> [LogLine]
+parseFile year ls =
+  case AL.parse (logline year <* eol) ls of
+    AL.Fail {}           -> []
+    AL.Done ls' (Just l) -> l : parseFile year ls'
+    AL.Done ls' _        -> parseFile year ls'
 
 
 logline :: Integer -> Parser (Maybe LogLine)
-logline year = Just
-  <$> line'
-  <|> toEOL *> pure Nothing
+logline year = Just <$> line'
+  <|> toeol *> pure Nothing
  where
   line' = LogLine
     <$> date year
@@ -37,7 +39,7 @@ parseContent =
   (LcGetMore <$> query "getmore") <|>
   other
  where
-  other = toEOL *> pure LcOther
+  other = toeol *> pure LcOther
 
 
 query :: BS.ByteString -> Parser QueryInfo
@@ -50,6 +52,7 @@ query cmd = do
   spc
   q <- parseDocument
   ci <- commandInfos
+  toeol
   return $ QueryInfo ns q ci
 
 
@@ -135,12 +138,16 @@ commandInfo = Just <$> choice
 -}
 
 
-isEOL :: Char -> Bool
-isEOL c = c == '\r' || c == '\n'
+eol :: Parser BS.ByteString
+eol = takeWhile1 iseol
 
 
-toEOL :: Parser ()
-toEOL = skipWhile (not . isEOL)
+iseol :: Char -> Bool
+iseol c = c == '\r' || c == '\n'
+
+
+toeol :: Parser ()
+toeol = skipWhile (not . iseol)
 
 
 date :: Integer -> Parser BS.ByteString

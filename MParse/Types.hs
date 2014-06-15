@@ -66,7 +66,7 @@ data LogNamespace =
 
 data LogContent =
     LcQuery !QueryInfo
-  | LcGetMore QueryInfo
+  | LcGetMore !QueryInfo
   | LcOther
   deriving ( Show, Eq, Ord )
 

@@ -3,8 +3,7 @@
 module MParse where
 
 import           Control.Applicative
-import qualified Data.Attoparsec.ByteString.Lazy as AL
-import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy as BL
 import           Data.List          ( find )
 import qualified Data.Map.Strict as M
 import           Data.Time
@@ -46,11 +45,8 @@ main = do
   -- TODO: proper argument parsing
   [file]   <- getArgs
   thisYear <- getCurrentYear
-  llines   <- AL.parseOnly (loglines thisYear) <$> BS.readFile file
 
-  case llines of
-    Right ls -> print $ aggregate ls
-    Left _   -> putStrLn "failed to parse log file"
+  print =<< (aggregate . parseFile thisYear) <$> BL.readFile file
 
 
 -- vim: set et sw=2 sts=2 tw=80:
