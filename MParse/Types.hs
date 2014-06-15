@@ -41,7 +41,7 @@ data MongoOperator =
 
 
 data MongoKey =
-    MKey String
+    MKey BS.ByteString
   | MOperator MongoOperator
   deriving ( Show, Eq, Ord )
 
@@ -60,43 +60,44 @@ data LogNamespace =
   | NsFileAllocator
   | NsInitAndListen
   | NsConnection Integer
-  | NsOther String
+  | NsOther BS.ByteString
   deriving ( Show, Eq, Ord )
 
 
 data LogContent =
-    LcQuery QueryInfo
+    LcQuery !QueryInfo
   | LcGetMore QueryInfo
-  | LcOther BS.ByteString
+  | LcOther
   deriving ( Show, Eq, Ord )
 
 
 data QueryInfo = QueryInfo
-  { qiNamespace :: String
+  { qiNamespace :: BS.ByteString
   , qiQuery     :: MongoElement
-  , qiInfos     :: [CommandInfo]
+  , qiInfos     :: ![CommandInfo]
   } deriving ( Show, Eq, Ord )
 
 
 data CommandInfo =
-    CiNScanned Integer
-  | CiNReturned Integer
-  | CiNToSkip Integer
-  | CiNToReturn Integer
-  | CiNDeleted Integer
-  | CiNInserted Integer
-  | CiResLen Integer
-  | CiR Integer
-  | CiKeyUpdated Integer
-  | CiRuntime Integer
-  | CiCursorId Integer
+    CiNScanned !Int
+  | CiNReturned !Int
+  | CiNToSkip !Int
+  | CiNToReturn !Int
+  | CiNDeleted !Int
+  | CiNInserted !Int
+  | CiResLen !Int
+  | CiR !Int
+  | CiKeyUpdated !Int
+  | CiRuntime !Int
+  | CiCursorId !Int
+  | CiNumYields !Int
   deriving ( Show, Eq, Ord )
 
 
 data LogLine = LogLine
-  { lTime      :: UTCTime
+  { lTime      :: BS.ByteString
   , lNamespace :: LogNamespace
-  , lContent   :: LogContent
+  , lContent   :: !LogContent
   } deriving ( Show, Eq, Ord )
 
 

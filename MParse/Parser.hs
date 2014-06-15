@@ -15,7 +15,7 @@ import MParse.Types
 
 loglines :: Integer -> Parser [LogLine]
 loglines year =
-  catMaybes <$> (logline year `sepBy` satisfy isEOL) <* end
+  catMaybes <$> (logline year `sepBy'` satisfy isEOL) <* end
  where
   end = toEOL *> endOfInput
 
@@ -27,7 +27,7 @@ logline year = Just
  where
   line' = LogLine
     <$> date year
-    <*> parseNamespace <* skipSpace
+    <*> parseNamespace <* spc
     <*> parseContent
 
 
@@ -37,17 +37,17 @@ parseContent =
   (LcGetMore <$> query "getmore") <|>
   other
  where
-  other = LcOther <$> toEOL
+  other = toEOL *> pure LcOther
 
 
 query :: BS.ByteString -> Parser QueryInfo
 query cmd = do
   _ <- string cmd
   _ <- char ' '
-  ns <- BS.unpack <$> takeTill isSpace
-  skipSpace
+  ns <- takeTill isSpace
+  spc
   _ <- string "query: "
-  skipSpace
+  spc
   q <- parseDocument
   ci <- commandInfos
   return $ QueryInfo ns q ci
@@ -68,65 +68,87 @@ namespace =
   fileAllocator <|>
   other
  where
-  initAndListen = string "initandlisten" *> pure NsInitAndListen
-  healthPoll    = string "rsHealthPoll" *> pure NsHealthPoll
-  fileAllocator = string "FileAllocator" *> pure NsFileAllocator
-  ttlMonitor    = string "TTLMonitor" *> pure NsTTLMonitor
-  webServer     = string "websvr" *> pure NsWebServer
-  connection    = string "conn" *> (NsConnection <$> num)
-  other = NsOther . BS.unpack <$> takeTill (== ']')
+  initAndListen = "initandlisten" *> pure NsInitAndListen
+  healthPoll    = "rsHealthPoll" *> pure NsHealthPoll
+  fileAllocator = "FileAllocator" *> pure NsFileAllocator
+  ttlMonitor    = "TTLMonitor" *> pure NsTTLMonitor
+  webServer     = "websvr" *> pure NsWebServer
+  connection    = "conn" *> (NsConnection <$> decimal)
+  other = NsOther <$> takeTill (== ']')
 
 
 commandInfos :: Parser [CommandInfo]
 commandInfos =
-  catMaybes <$> ((skipSpace *> commandInfo) `sepBy` char ' ')
+  catMaybes <$> ((spc *> commandInfo) `sepBy'` char ' ')
 
 
+commandInfo :: Parser (Maybe CommandInfo)
+commandInfo =
+  mapCmd <$> takeWhile1 isAlpha_ascii <*> (char ':' *> spc *> decimal)
+  <|> (Just . CiRuntime) <$> decimal <* string "ms"
+  <|> unknown
+ where
+  unknown = skipWhile (/= ' ') *> pure Nothing
+
+  mapCmd "cursorid" x   = Just $ CiCursorId x
+  mapCmd "keyUpdates" x = Just $ CiKeyUpdated x
+  mapCmd "nreturned" x  = Just $ CiNReturned x
+  mapCmd "nscanned" x   = Just $ CiNScanned x
+  mapCmd "ninserted" x  = Just $ CiNInserted x
+  mapCmd "ndeleted" x   = Just $ CiNDeleted x
+  mapCmd "numYields" x  = Just $ CiNumYields x
+  mapCmd "ntoreturn" x  = Just $ CiNToReturn x
+  mapCmd "ntoskip" x    = Just $ CiNToSkip x
+  mapCmd "reslen" x     = Just $ CiResLen x
+  mapCmd "r" x          = Just $ CiR x
+  mapCmd _ _            = Nothing
+
+{-
 commandInfo :: Parser (Maybe CommandInfo)
 commandInfo = Just <$> choice
   [ ncom
   , info "cursorid" CiCursorId
   , info "keyUpdates" CiKeyUpdated
-  , info "reslen" CiResLen
-  , info "r" CiR
+  , r
   , runtime
   ] <|> unknown
  where
-  info s ctor = ctor <$> (string s *> char ':' *> num)
-  unknown = skipWhile (not . isSpace) *> return Nothing
+  info s ctor = ctor <$> (string s *> char ':' *> spc *> decimal)
+  unknown = skipWhile (/= ' ') *> return Nothing
   ncom = char 'n' *> choice
     [ info "returned" CiNReturned
     , info "scanned" CiNScanned
     , info "inserted" CiNInserted
     , info "deleted" CiNDeleted
-    , info "toreturn" CiNToReturn
-    , info "toskip" CiNToSkip
+    , info "umYields" CiNumYields
+    , to
     ]
-  runtime = CiRuntime <$> num <* string "ms"
-
-
-num :: Parser Integer
-num = do
-  n <- number
-  case n of
-    I n' -> return n'
-    _    -> fail "invalid connection"
+  to = string "to" *> choice
+    [ info "return" CiNToReturn
+    , info "skip" CiNToSkip
+    ]
+  r = char 'r' *> choice
+    [ info "eslen" CiResLen
+    , CiR <$> (char ':' *> decimal)
+    ]
+  runtime = CiRuntime <$> decimal <* string "ms"
+-}
 
 
 isEOL :: Char -> Bool
 isEOL c = c == '\r' || c == '\n'
 
 
-toEOL :: Parser BS.ByteString
-toEOL = takeTill isEOL
+toEOL :: Parser ()
+toEOL = skipWhile (not . isEOL)
 
 
-date :: Integer -> Parser UTCTime
-date year = do
-  d <- takeTill (== '[')
-  case parseTime' year (BS.unpack d) of
-    Just d' -> return d'
-    Nothing -> fail "failed to parse date time"
+date :: Integer -> Parser BS.ByteString
+date year =
+  takeTill (== '[')
+  {- case parseTime' year (BS.unpack d) of -}
+    {- Just d' -> return d' -}
+    {- Nothing -> fail "failed to parse date time" -}
 
 
 parseTime' :: Integer -> String -> Maybe UTCTime
@@ -141,6 +163,10 @@ parseTime' year input =
    where
     (_, month, day) = toGregorian $ utctDay u
     day'            = fromGregorian year month day
+
+
+spc :: Parser ()
+spc = skipWhile (== ' ')
 
 
 -- vim: set et sw=2 sts=2 tw=80:

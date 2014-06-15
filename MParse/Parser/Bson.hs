@@ -57,7 +57,7 @@ str =
 key :: Parser MongoKey
 key =
   MOperator <$> operator <|>
-  MKey . BS.unpack <$> takeTill keyEnd
+  MKey <$> takeTill keyEnd
  where
   -- TODO: fully implement keys in quotes
   keyEnd c = isSpace c || c == ':' || inClass "'\"" c

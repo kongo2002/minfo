@@ -3,10 +3,10 @@
 module MParse where
 
 import           Control.Applicative
-import           Data.Attoparsec.ByteString.Char8
+import qualified Data.Attoparsec.ByteString.Lazy as AL
 import qualified Data.ByteString.Char8 as BS
 import           Data.List          ( find )
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 import           Data.Time
 import           System.Environment ( getArgs )
 
@@ -20,7 +20,7 @@ getCurrentYear = do
   return year
 
 
-aggregate :: [LogLine] -> M.Map MongoElement (Integer, Integer)
+aggregate :: [LogLine] -> M.Map MongoElement (Int, Int)
 aggregate ls =
   M.fromListWith group ls'
  where
@@ -30,7 +30,7 @@ aggregate ls =
   ls' = [(qiQuery qi, (1, getMs (qiInfos qi))) | LogLine _ _ (LcQuery qi) <- ls]
 
 
-getMs :: [CommandInfo] -> Integer
+getMs :: [CommandInfo] -> Int
 getMs cs =
   get $ find ms cs
  where
@@ -46,7 +46,7 @@ main = do
   -- TODO: proper argument parsing
   [file]   <- getArgs
   thisYear <- getCurrentYear
-  llines   <- parseOnly (loglines thisYear) <$> BS.readFile file
+  llines   <- AL.parseOnly (loglines thisYear) <$> BS.readFile file
 
   case llines of
     Right ls -> print $ aggregate ls
