@@ -41,7 +41,6 @@ aggregate ls =
   group _ acc   = acc
 
   ls'     = [acc0 qi | LogLine _ _ (LcQuery qi) <- ls]
-
   acc0 qi = (key, (1, ms, ms, toInteger ms, ms'))
    where
     (ms, ms') = getMs (qiInfos qi)
@@ -96,7 +95,6 @@ getMs cs =
   get _                    = (0, [])
 
 
--- different sorting functions
 bySum :: SortPredicate
 bySum (_, (_, _, _, s1, _)) (_, (_, _, _, s2, _)) = compare s2 s1
 
@@ -110,6 +108,7 @@ main = do
   LBS.putStr =<< process thisYear <$> LBS.readFile file
  where
   process y = output' . aggregate . parseFile y
+  -- TODO: choose sort order by command line argument
   output'   = output bySum
 
 
