@@ -6,7 +6,7 @@ import           Control.Applicative
 import qualified Data.ByteString.Char8 as BS
 import           Data.ByteString.Lazy.Builder
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import           Data.List          ( find )
+import           Data.List          ( find, sortBy )
 import qualified Data.Map.Strict as M
 import           Data.Monoid        ( mempty )
 import           Data.Time
@@ -17,6 +17,9 @@ import MInfo.Parser
 import MInfo.Types
 import MInfo.Utils
 
+type SortPredicate = (MapKey, (Int, Int, Int, Integer, [Int]))
+                  -> (MapKey, (Int, Int, Int, Integer, [Int]))
+                  -> Ordering
 
 type MapKey   = (BS.ByteString, MongoElement)
 type QueryMap = M.Map MapKey (Int, Int, Int, Integer, [Int])
@@ -59,16 +62,17 @@ table ns c mi ma avg s =
   pad l x  = stringUtf8 $ take l (x ++ replicate l ' ') ++ " "
 
 
-output :: QueryMap -> LBS.ByteString
-output qm =
-  toLazyByteString $ header <> M.foldrWithKey go mempty qm
+output :: SortPredicate -> QueryMap -> LBS.ByteString
+output order qm =
+  toLazyByteString $ header <> foldr go mempty input
  where
   nl     = charUtf8 '\n'
   tab    = stringUtf8 "    "
+  input  = sortBy order $ M.toList qm
   header = table "NS:" "COUNT:" "MIN:" "MAX:" "AVG:" "SUM:"
 
   -- process one query aggregation
-  go (ns, q) (c, mi, ma, s, ms) acc =
+  go ((ns, q), (c, mi, ma, s, _)) acc =
     table
       (BS.unpack ns)
       (show c)
@@ -92,6 +96,11 @@ getMs cs =
   get _                    = (0, [])
 
 
+-- different sorting functions
+bySum :: SortPredicate
+bySum (_, (_, _, _, s1, _)) (_, (_, _, _, s2, _)) = compare s2 s1
+
+
 main :: IO ()
 main = do
   -- TODO: proper argument parsing
@@ -100,7 +109,8 @@ main = do
 
   LBS.putStr =<< process thisYear <$> LBS.readFile file
  where
-  process y = output . aggregate . parseFile y
+  process y = output' . aggregate . parseFile y
+  output'   = output bySum
 
 
 -- vim: set et sw=2 sts=2 tw=80:
