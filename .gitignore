@@ -6,5 +6,6 @@
 *.prof
 *.ps
 .cabal-sandbox
+/dist
 cabal.sandbox.config
 minfo

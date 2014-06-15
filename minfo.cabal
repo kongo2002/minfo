@@ -1,0 +1,34 @@
+name:                minfo
+version:             0.1.0.0
+cabal-version:       >=1.10
+
+synopsis:            Tool to analyze mongodb log files
+description:         Tool to analyze mongodb log files
+homepage:            https://github.com/kongo2002/minfo/
+license:             Apache-2.0
+license-file:        LICENSE
+
+author:              Gregor Uhlenheuer <kongo2002@googlemail.com>
+maintainer:          Gregor Uhlenheuer <kongo2002@googlemail.com>
+copyright:           (c) 2014 Gregor Uhlenheuer
+
+category:            Program
+build-type:          Simple
+
+executable minfo
+  main-is:             MInfo.hs
+  other-extensions:    OverloadedStrings
+
+  build-depends:       base >= 4.6 && < 4.7,
+                       bytestring,
+                       containers,
+                       time,
+                       attoparsec >= 0.11 && < 0.13
+
+  ghc-options:         -O2 -Wall
+
+  default-language:    Haskell2010
+
+source-repository head
+    type:       git
+    location:   git://github.com/kongo2002/minfo.git

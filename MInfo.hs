@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module MInfo where
+module Main where
 
 import           Control.Applicative
 import qualified Data.ByteString.Char8 as BS
