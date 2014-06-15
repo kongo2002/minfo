@@ -5,9 +5,6 @@ module MParse where
 import           Control.Applicative
 import qualified Data.ByteString.Char8 as BS
 import           Data.ByteString.Lazy.Builder
-import           Data.ByteString.Lazy.Builder.ASCII ( intDec
-                                                    , integerDec
-                                                    , doubleDec )
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import           Data.List          ( find )
 import qualified Data.Map.Strict as M
@@ -48,23 +45,37 @@ aggregate ls =
     key       = (qiNamespace qi, qiQuery qi)
 
 
+table :: String -> String -> String -> String -> String -> String -> Builder
+table ns c mi ma avg s =
+  pad 20 ns <>
+  pad 10 c <>
+  pad 10 mi <>
+  pad 10 ma <>
+  pad 10 avg <>
+  trim 10 s <>
+  charUtf8 '\n' <> mempty
+ where
+  trim l x = stringUtf8 $ take l x
+  pad l x  = stringUtf8 $ take l (x ++ replicate l ' ') ++ " "
+
+
 output :: QueryMap -> LBS.ByteString
 output qm =
   toLazyByteString $ header <> M.foldrWithKey go mempty qm
  where
   nl     = charUtf8 '\n'
-  tab    = charUtf8 '\t'
-  double = stringUtf8 . double2f
-  header = stringUtf8 "ns:\t\tcount:\tmin:\tmax:\tmean:\tsum:\n\n"
+  tab    = stringUtf8 "    "
+  header = table "NS:" "COUNT:" "MIN:" "MAX:" "AVG:" "SUM:"
 
   -- process one query aggregation
   go (ns, q) (c, mi, ma, s, ms) acc =
-    byteString ns <> tab <>
-    intDec c <> tab <>
-    intDec mi <> tab <>
-    intDec ma <> tab <>
-    double avg <> tab <>
-    integerDec s <> nl <>
+    table
+      (BS.unpack ns)
+      (show c)
+      (show mi)
+      (show ma)
+      (double2f avg)
+      (show s) <>
     tab <> encode q <> nl <> acc
    where
     avg = fromIntegral s / fromIntegral c
