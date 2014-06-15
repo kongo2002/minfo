@@ -8,3 +8,5 @@ You can build **minfo** using *cabal*:
 
     $ cabal configure
     $ cabal build
+
+[travis]: https://travis-ci.org/kongo2002/minfo/
