@@ -63,10 +63,10 @@ parseNamespace =
 
 namespace :: Parser LogNamespace
 namespace =
-  initAndListen <|>
-  healthPoll <|>
   connection <|>
+  healthPoll <|>
   ttlMonitor <|>
+  initAndListen <|>
   webServer <|>
   fileAllocator <|>
   other
