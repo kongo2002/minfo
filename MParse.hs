@@ -4,9 +4,11 @@ module MParse where
 
 import           Control.Applicative
 import qualified Data.ByteString.Char8 as BS
+import           Data.ByteString.Lazy.Builder
 import qualified Data.ByteString.Lazy.Char8 as BL
 import           Data.List          ( find )
 import qualified Data.Map.Strict as M
+import           Data.Monoid        ( mappend, mempty, Monoid )
 import           Data.Time
 import           System.Environment ( getArgs )
 
@@ -42,15 +44,20 @@ aggregate ls =
     key       = (qiNamespace qi, qiQuery qi)
 
 
-output :: QueryMap -> BS.ByteString
+infixr 4 <>
+(<>) :: Monoid m => m -> m -> m
+(<>) = mappend
+{-# INLINE (<>) #-}
+
+
+output :: QueryMap -> BL.ByteString
 output qm =
-  -- TODO: do not intermingle IO and pretty printing
-  M.foldrWithKey go BS.empty qm
+  toLazyByteString $ M.foldrWithKey go mempty qm
  where
   go (ns, q) (c, mi, ma, s, ms) acc =
-    let q'  = BS.concat $ BL.toChunks $ encodeLBS q
-        str = ns `BS.append` ": " `BS.append` q' `BS.append` "\n"
-    in acc `BS.append` str
+    let q'  = encode q
+        str = byteString ns <> stringUtf8 ": " <> q' <> charUtf8 '\n'
+    in str <> acc
 
 
 getMs :: [CommandInfo] -> (Int, [Int])
@@ -70,7 +77,7 @@ main = do
   [file]   <- getArgs
   thisYear <- getCurrentYear
 
-  BS.putStrLn =<< process thisYear <$> BL.readFile file
+  BL.putStr =<< process thisYear <$> BL.readFile file
  where
   process y = output . aggregate . parseFile y
 
