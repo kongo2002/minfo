@@ -2,6 +2,7 @@
 
 module MParse.Parser where
 
+import           Prelude hiding     ( take )
 import           Control.Applicative
 import qualified Data.Attoparsec.ByteString.Lazy as AL
 import           Data.Attoparsec.ByteString.Char8
@@ -9,7 +10,6 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as BL
 import           Data.Maybe         ( catMaybes )
 import           Data.Time
-import           System.Locale      ( defaultTimeLocale )
 
 import MParse.Parser.Bson           ( parseDocument )
 import MParse.Types
@@ -119,26 +119,48 @@ toeol :: Parser ()
 toeol = skipWhile (not . iseol)
 
 
-date :: Integer -> Parser BS.ByteString
+date :: Integer -> Parser UTCTime
 date year =
-  takeTill (== '[')
-  {- case parseTime' year (BS.unpack d) of -}
-    {- Just d' -> return d' -}
-    {- Nothing -> fail "failed to parse date time" -}
+  take 4 *> (UTCTime <$> day year <*> time) <* char ' '
 
 
-parseTime' :: Integer -> String -> Maybe UTCTime
-parseTime' year input =
-  fmap corrected parsed
+day :: Integer -> Parser Day
+day year =
+  fromGregorian year <$> month <*> decimal <* char ' '
+
+
+time :: Parser DiffTime
+time = do
+  h <- decimal
+  _ <- char ':'
+  m <- decimal
+  _ <- char ':'
+  s <- decimal
+  _ <- char '.'
+  ms <- decimal
+  return . picos $ time' h m s ms
  where
-  timeFormat = "%a %b %e %T%Q"
-  parsed = parseTime defaultTimeLocale timeFormat input
+  time' h m s ms = (s + m * 60 + h * 3600) * 1000 + ms
+  picos = picosecondsToDiffTime . (* 1000000000)
 
-  corrected u =
-    UTCTime day' $ utctDayTime u
-   where
-    (_, month, day) = toGregorian $ utctDay u
-    day'            = fromGregorian year month day
+
+month :: Parser Int
+month =
+  month' <$> take 3 <* char ' '
+ where
+  month' "Jan" = 1
+  month' "Feb" = 2
+  month' "Mar" = 3
+  month' "Apr" = 4
+  month' "May" = 5
+  month' "Jun" = 6
+  month' "Jul" = 7
+  month' "Aug" = 8
+  month' "Sep" = 9
+  month' "Oct" = 10
+  month' "Nov" = 11
+  month' "Dec" = 12
+  month' _     = error "captain! we've been hit"
 
 
 spc :: Parser ()

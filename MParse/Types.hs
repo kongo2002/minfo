@@ -95,7 +95,7 @@ data CommandInfo =
 
 
 data LogLine = LogLine
-  { lTime      :: BS.ByteString
+  { lTime      :: UTCTime
   , lNamespace :: LogNamespace
   , lContent   :: !LogContent
   } deriving ( Show, Eq, Ord )
