@@ -113,7 +113,7 @@ eol = takeWhile1 iseol
 
 
 iseol :: Char -> Bool
-iseol c = c == '\r' || c == '\n'
+iseol c = c == '\n' || c == '\r'
 
 
 toeol :: Parser ()
