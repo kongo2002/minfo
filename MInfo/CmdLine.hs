@@ -61,20 +61,30 @@ usage = usageInfo "minfo" options
 parseOpts :: [String] -> IO Options
 parseOpts args =
   case getOpt RequireOrder options args of
-    -- successful parsing
-    (o, nos, []) -> do
-      opts <- foldl (>>=) (return defOptions) o
-      -- use positional argument in case
-      -- the input file wasn't passed explicitely
-      case (nos, oInput opts) of
-        ([x], []) -> return $ opts { oInput = x }
-        _ -> return $ opts
+    -- successful
+    (o, ps, []) ->
+      foldl (>>=) (return defOptions) o >>= pos ps >>= check
     -- errors
     (_, _, es) -> ioError (userError (concat es ++ usage))
+ where
+  -- use positional argument in case
+  -- the input file wasn't passed explicitely
+  pos [x] opts =
+    case oInput opts of
+      [] -> return $ opts { oInput = x }
+      _  -> return opts
+  pos _ opts = return opts
+
+  check (Options _ [] _) = errExit "no input file given"
+  check opts             = return opts
 
 
 err :: String -> IO ()
 err = hPutStrLn stderr
+
+
+errExit :: String -> IO a
+errExit str = err str >> exitWith (ExitFailure 1)
 
 
 -- vim: set et sw=2 sts=2 tw=80:
