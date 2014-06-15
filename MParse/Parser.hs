@@ -106,37 +106,6 @@ commandInfo =
   mapCmd "r" x          = Just $ CiR x
   mapCmd _ _            = Nothing
 
-{-
-commandInfo :: Parser (Maybe CommandInfo)
-commandInfo = Just <$> choice
-  [ ncom
-  , info "cursorid" CiCursorId
-  , info "keyUpdates" CiKeyUpdated
-  , r
-  , runtime
-  ] <|> unknown
- where
-  info s ctor = ctor <$> (string s *> char ':' *> spc *> decimal)
-  unknown = skipWhile (/= ' ') *> return Nothing
-  ncom = char 'n' *> choice
-    [ info "returned" CiNReturned
-    , info "scanned" CiNScanned
-    , info "inserted" CiNInserted
-    , info "deleted" CiNDeleted
-    , info "umYields" CiNumYields
-    , to
-    ]
-  to = string "to" *> choice
-    [ info "return" CiNToReturn
-    , info "skip" CiNToSkip
-    ]
-  r = char 'r' *> choice
-    [ info "eslen" CiResLen
-    , CiR <$> (char ':' *> decimal)
-    ]
-  runtime = CiRuntime <$> decimal <* string "ms"
--}
-
 
 eol :: Parser BS.ByteString
 eol = takeWhile1 iseol
