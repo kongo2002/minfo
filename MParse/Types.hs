@@ -1,5 +1,6 @@
 module MParse.Types where
 
+import           Prelude hiding ( GT, LT )
 import qualified Data.ByteString.Char8 as BS
 import           Data.Time ( UTCTime )
 
@@ -37,7 +38,36 @@ data MongoOperator =
   -- projection
   | Meta
   | Slice
-  deriving ( Show, Eq, Ord )
+  deriving ( Eq, Ord )
+
+
+instance (Show MongoOperator) where
+  show  GT            = "$gt"
+  show  GTE           = "$gte"
+  show  In            = "$in"
+  show  LT            = "$lt"
+  show  LTE           = "$lte"
+  show  NE            = "$ne"
+  show  NotIn         = "$nin"
+  show  Or            = "$or"
+  show  And           = "$and"
+  show  Not           = "$not"
+  show  Nor           = "$not"
+  show  Exists        = "$exists"
+  show  Type          = "$type"
+  show  Mod           = "$mod"
+  show  Regex         = "$regex"
+  show  Text          = "$text"
+  show  Where         = "$where"
+  show  GeoWithin     = "$geoWithin"
+  show  GeoIntersects = "$geoIntersects"
+  show  Near          = "$near"
+  show  NearSphere    = "$nearSphere"
+  show  All           = "$all"
+  show  ElemMatch     = "$elemMatch"
+  show  Size          = "$size"
+  show  Meta          = "$meta"
+  show  Slice         = "$slice"
 
 
 data MongoKey =
