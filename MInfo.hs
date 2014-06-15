@@ -11,6 +11,7 @@ import qualified Data.Map.Strict as M
 import           Data.Monoid        ( mempty )
 import           System.Environment ( getArgs )
 
+import MInfo.CmdLine
 import MInfo.Encoder
 import MInfo.Parser
 import MInfo.Types
@@ -83,10 +84,10 @@ bySum (_, _, _, s1, _) (_, _, _, s2, _) = compare s2 s1
 main :: IO ()
 main = do
   -- TODO: proper argument parsing
-  [file]   <- getArgs
+  opts     <- parseOpts =<< getArgs
   thisYear <- getCurrentYear
 
-  LBS.putStr =<< process thisYear <$> LBS.readFile file
+  LBS.putStr =<< process thisYear <$> LBS.readFile (oInput opts)
  where
   process y = output' . aggregate . parseFile y
 
