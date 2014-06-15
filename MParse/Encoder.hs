@@ -2,13 +2,19 @@
 
 module MParse.Encoder
   ( encode
+  , encodeLBS
   ) where
 
 import           Data.Monoid                  ( mappend, Monoid )
 import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy as LBS
 import           Data.ByteString.Lazy.Builder
 
 import           MParse.Types
+
+
+encodeLBS :: MongoElement -> LBS.ByteString
+encodeLBS = toLazyByteString . encode
 
 
 encode :: MongoElement -> Builder

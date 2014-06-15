@@ -4,12 +4,13 @@ module MParse where
 
 import           Control.Applicative
 import qualified Data.ByteString.Char8 as BS
-import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Lazy.Char8 as BL
 import           Data.List          ( find )
 import qualified Data.Map.Strict as M
 import           Data.Time
 import           System.Environment ( getArgs )
 
+import MParse.Encoder
 import MParse.Parser
 import MParse.Types
 
@@ -41,6 +42,17 @@ aggregate ls =
     key       = (qiNamespace qi, qiQuery qi)
 
 
+output :: QueryMap -> IO ()
+output qm =
+  -- TODO: do not intermingle IO and pretty printing
+  sequence_ $ M.foldrWithKey go [] qm
+ where
+  go (ns, q) (c, mi, ma, s, ms) acc = (do
+    BS.putStr ns
+    BS.putStr ": "
+    BL.putStrLn $ encodeLBS q) : acc
+
+
 getMs :: [CommandInfo] -> (Int, [Int])
 getMs cs =
   get $ find ms cs
@@ -58,7 +70,7 @@ main = do
   [file]   <- getArgs
   thisYear <- getCurrentYear
 
-  print =<< (aggregate . parseFile thisYear) <$> BL.readFile file
+  output =<< (aggregate . parseFile thisYear) <$> BL.readFile file
 
 
 -- vim: set et sw=2 sts=2 tw=80:
