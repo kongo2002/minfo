@@ -17,8 +17,9 @@ import MInfo.Parser
 import MInfo.Types
 import MInfo.Utils
 
-type SortPredicate = (MapKey, (Int, Int, Int, Integer, [Int]))
-                  -> (MapKey, (Int, Int, Int, Integer, [Int]))
+
+type SortPredicate = (Int, Int, Int, Integer, [Int])
+                  -> (Int, Int, Int, Integer, [Int])
                   -> Ordering
 
 type MapKey   = (BS.ByteString, MongoElement)
@@ -65,10 +66,11 @@ output :: SortPredicate -> QueryMap -> LBS.ByteString
 output order qm =
   toLazyByteString $ header <> foldr go mempty input
  where
-  nl     = charUtf8 '\n'
-  tab    = stringUtf8 "    "
-  input  = sortBy order $ M.toList qm
-  header = table "NS:" "COUNT:" "MIN:" "MAX:" "AVG:" "SUM:"
+  nl      = charUtf8 '\n'
+  tab     = stringUtf8 "    "
+  ord a b = order (snd a) (snd b)
+  input   = sortBy ord $ M.toList qm
+  header  = table "NS:" "COUNT:" "MIN:" "MAX:" "AVG:" "SUM:"
 
   -- process one query aggregation
   go ((ns, q), (c, mi, ma, s, _)) acc =
@@ -96,7 +98,7 @@ getMs cs =
 
 
 bySum :: SortPredicate
-bySum (_, (_, _, _, s1, _)) (_, (_, _, _, s2, _)) = compare s2 s1
+bySum (_, _, _, s1, _) (_, _, _, s2, _) = compare s2 s1
 
 
 main :: IO ()
@@ -108,6 +110,7 @@ main = do
   LBS.putStr =<< process thisYear <$> LBS.readFile file
  where
   process y = output' . aggregate . parseFile y
+
   -- TODO: choose sort order by command line argument
   output'   = output bySum
 
