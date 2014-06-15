@@ -9,7 +9,6 @@ import qualified Data.ByteString.Lazy.Char8 as LBS
 import           Data.List          ( find, sortBy )
 import qualified Data.Map.Strict as M
 import           Data.Monoid        ( mempty )
-import           Data.Time
 import           System.Environment ( getArgs )
 
 import MInfo.Encoder
@@ -26,12 +25,6 @@ type MapKey   = (BS.ByteString, MongoElement)
 type QueryMap = M.Map MapKey (Int, Int, Int, Integer, [Int])
 
 
-getCurrentYear :: IO Integer
-getCurrentYear = do
-  (year, _, _) <- fmap (toGregorian . utctDay) getCurrentTime
-  return year
-
-
 aggregate :: [LogLine] -> QueryMap
 aggregate ls =
   M.fromListWith group ls'
@@ -46,20 +39,6 @@ aggregate ls =
    where
     (ms, ms') = getMs (qiInfos qi)
     key       = (qiNamespace qi, qiQuery qi)
-
-
-table :: String -> String -> String -> String -> String -> String -> Builder
-table ns c mi ma avg s =
-  pad 20 ns <>
-  pad 10 c <>
-  pad 10 mi <>
-  pad 10 ma <>
-  pad 10 avg <>
-  trim 10 s <>
-  charUtf8 '\n' <> mempty
- where
-  trim l x = stringUtf8 $ take l x
-  pad l x  = stringUtf8 $ take l (x ++ replicate l ' ') ++ " "
 
 
 output :: SortPredicate -> QueryMap -> LBS.ByteString
