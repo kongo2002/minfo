@@ -5,7 +5,8 @@ module MParse where
 import           Control.Applicative
 import qualified Data.ByteString.Char8 as BS
 import           Data.ByteString.Lazy.Builder
-import qualified Data.ByteString.Lazy.Char8 as BL
+import           Data.ByteString.Lazy.Builder.ASCII ( intDec, doubleDec )
+import qualified Data.ByteString.Lazy.Char8 as LBS
 import           Data.List          ( find )
 import qualified Data.Map.Strict as M
 import           Data.Monoid        ( mappend, mempty, Monoid )
@@ -50,14 +51,19 @@ infixr 4 <>
 {-# INLINE (<>) #-}
 
 
-output :: QueryMap -> BL.ByteString
+output :: QueryMap -> LBS.ByteString
 output qm =
-  toLazyByteString $ M.foldrWithKey go mempty qm
+  toLazyByteString $ header <> M.foldrWithKey go mempty qm
  where
+  nl  = charUtf8 '\n'
+  tab = charUtf8 '\t'
+  header = stringUtf8 "ns:\t\tcount:\tmin:\tmax:\n\n"
   go (ns, q) (c, mi, ma, s, ms) acc =
-    let q'  = encode q
-        str = byteString ns <> stringUtf8 ": " <> q' <> charUtf8 '\n'
-    in str <> acc
+    byteString ns <> tab <>
+    intDec c <> tab <>
+    intDec mi <> tab <>
+    intDec ma <> tab <> nl <>
+    tab <> encode q <> charUtf8 '\n' <> acc
 
 
 getMs :: [CommandInfo] -> (Int, [Int])
@@ -77,7 +83,7 @@ main = do
   [file]   <- getArgs
   thisYear <- getCurrentYear
 
-  BL.putStr =<< process thisYear <$> BL.readFile file
+  LBS.putStr =<< process thisYear <$> LBS.readFile file
  where
   process y = output . aggregate . parseFile y
 
