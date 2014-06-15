@@ -5,12 +5,12 @@ module MParse.Encoder
   , encodeLBS
   ) where
 
-import           Data.Monoid                  ( mappend, Monoid )
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as LBS
 import           Data.ByteString.Lazy.Builder
 
 import           MParse.Types
+import           MParse.Utils
 
 
 encodeLBS :: MongoElement -> LBS.ByteString
@@ -63,12 +63,6 @@ encodeKey op =
                  c == '\n' ||
                  c == '\t'
     (h, t) = BS.break isEscape bs
-
-
-infixr 4 <>
-(<>) :: Monoid m => m -> m -> m
-(<>) = mappend
-{-# INLINE (<>) #-}
 
 
 -- vim: set et sw=2 sts=2 tw=80:
