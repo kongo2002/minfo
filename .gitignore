@@ -7,4 +7,4 @@
 *.ps
 .cabal-sandbox
 cabal.sandbox.config
-mparse
+minfo

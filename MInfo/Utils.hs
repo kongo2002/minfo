@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module MParse.Utils where
+module MInfo.Utils where
 
 import Data.Monoid ( mappend, Monoid )
 import Numeric     ( showGFloat )

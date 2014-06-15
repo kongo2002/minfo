@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module MParse.Parser.Bson where
+module MInfo.Parser.Bson where
 
 import           Prelude hiding ( GT, LT )
 import           Control.Applicative
 import           Data.Attoparsec.ByteString.Char8
 import qualified Data.ByteString.Char8 as BS
 
-import           MParse.Types
+import           MInfo.Types
 
 
 parseDocument :: Parser MongoElement

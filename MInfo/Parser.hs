@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module MParse.Parser where
+module MInfo.Parser where
 
 import           Prelude hiding     ( take )
 import           Control.Applicative
@@ -11,8 +11,8 @@ import qualified Data.ByteString.Lazy as BL
 import           Data.Maybe         ( catMaybes )
 import           Data.Time
 
-import MParse.Parser.Bson           ( parseDocument )
-import MParse.Types
+import MInfo.Parser.Bson           ( parseDocument )
+import MInfo.Types
 
 
 parseFile :: Integer -> BL.ByteString -> [LogLine]

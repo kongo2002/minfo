@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module MParse where
+module MInfo where
 
 import           Control.Applicative
 import qualified Data.ByteString.Char8 as BS
@@ -12,10 +12,10 @@ import           Data.Monoid        ( mempty )
 import           Data.Time
 import           System.Environment ( getArgs )
 
-import MParse.Encoder
-import MParse.Parser
-import MParse.Types
-import MParse.Utils
+import MInfo.Encoder
+import MInfo.Parser
+import MInfo.Types
+import MInfo.Utils
 
 
 type MapKey   = (BS.ByteString, MongoElement)
