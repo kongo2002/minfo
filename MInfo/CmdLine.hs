@@ -3,22 +3,34 @@ module MInfo.CmdLine
   , Options(..)
   ) where
 
-import System.Console.GetOpt
-import System.IO   ( hPutStrLn, stderr )
-import System.Exit ( exitWith, ExitCode(..), exitSuccess )
+import qualified Data.ByteString.Lazy.Char8 as LBS
+import           System.Console.GetOpt
+import           System.IO
+import           System.Exit ( exitWith, ExitCode(..), exitSuccess )
 
 
 data Options = Options
   { oVerbose :: Bool
-  , oInput   :: String
+  , oFile    :: Maybe String
+  , oInput   :: IO LBS.ByteString
   , oOutput  :: String
-  } deriving ( Show, Eq )
+  }
+
+
+getStdIn :: IO LBS.ByteString
+getStdIn = LBS.hGetContents stdin
+
+
+readInput :: String -> IO LBS.ByteString
+readInput file =
+  LBS.hGetContents =<< openFile file ReadMode
 
 
 defOptions :: Options
 defOptions = Options
   { oVerbose = False
-  , oInput   = ""
+  , oFile    = Nothing
+  , oInput   = getStdIn
   , oOutput  = ""
   }
 
@@ -27,7 +39,7 @@ options :: [ OptDescr (Options -> IO Options) ]
 options =
     [ Option "i" ["input"]
         (ReqArg
-            (\arg opt -> return opt { oInput = arg })
+            (\arg opt -> return opt { oFile = Just arg })
             "FILE")
         "input file"
 
@@ -63,20 +75,17 @@ parseOpts args =
   case getOpt RequireOrder options args of
     -- successful
     (o, ps, []) ->
-      foldl (>>=) (return defOptions) o >>= pos ps >>= check
+      foldl (>>=) (return defOptions) o >>= pos ps
     -- errors
     (_, _, es) -> ioError (userError (concat es ++ usage))
  where
   -- use positional argument in case
   -- the input file wasn't passed explicitely
   pos [x] opts =
-    case oInput opts of
-      [] -> return $ opts { oInput = x }
-      _  -> return opts
+    case oFile opts of
+      Nothing -> return $ opts { oInput = readInput x }
+      _       -> return opts
   pos _ opts = return opts
-
-  check (Options _ [] _) = errExit "no input file given"
-  check opts             = return opts
 
 
 err :: String -> IO ()

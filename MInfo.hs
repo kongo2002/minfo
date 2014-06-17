@@ -87,7 +87,7 @@ main = do
   opts     <- parseOpts =<< getArgs
   thisYear <- getCurrentYear
 
-  LBS.putStr =<< process thisYear <$> LBS.readFile (oInput opts)
+  LBS.putStr =<< process thisYear <$> oInput opts
  where
   process y = output' . aggregate . parseFile y
 
