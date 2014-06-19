@@ -6,7 +6,7 @@ import           Control.Applicative
 import qualified Data.ByteString.Char8 as BS
 import           Data.ByteString.Lazy.Builder
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import           Data.List          ( find, sortBy )
+import           Data.List          ( sortBy )
 import qualified Data.Map.Strict as M
 import           Data.Monoid        ( mempty )
 import           System.Environment ( getArgs )
@@ -42,6 +42,14 @@ aggregate ls =
     key       = (qiNamespace qi, qiQuery qi)
 
 
+getMs :: CommandInfo -> (Int, [Int])
+getMs ci
+  | ms > 0    = (ms, [ms])
+  | otherwise = (0, [])
+ where
+  ms = ciRuntime ci
+
+
 output :: SortPredicate -> QueryMap -> LBS.ByteString
 output order qm =
   toLazyByteString $ header <> foldr go mempty input
@@ -62,17 +70,6 @@ output order qm =
       (double2f $ avg t)
       (show s) <>
     tab <> encode q <> nl <> acc
-
-
-getMs :: [CommandInfo] -> (Int, [Int])
-getMs cs =
-  get $ find ms cs
- where
-  ms (CiRuntime _) = True
-  ms _             = False
-
-  get (Just (CiRuntime x)) = (x, [x])
-  get _                    = (0, [])
 
 
 avg :: (Int, Int, Int, Integer, [Int]) -> Double

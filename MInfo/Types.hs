@@ -104,24 +104,41 @@ data LogContent =
 data QueryInfo = QueryInfo
   { qiNamespace :: BS.ByteString
   , qiQuery     :: MongoElement
-  , qiInfos     :: ![CommandInfo]
+  , qiInfos     :: CommandInfo
   } deriving ( Show, Eq, Ord )
 
 
-data CommandInfo =
-    CiNScanned !Int
-  | CiNReturned !Int
-  | CiNToSkip !Int
-  | CiNToReturn !Int
-  | CiNDeleted !Int
-  | CiNInserted !Int
-  | CiResLen !Int
-  | CiR !Int
-  | CiKeyUpdated !Int
-  | CiRuntime !Int
-  | CiCursorId !Int
-  | CiNumYields !Int
-  deriving ( Show, Eq, Ord )
+data CommandInfo = CI
+  { ciNScanned   :: Int
+  , ciNReturned  :: Int
+  , ciNToSkip    :: Int
+  , ciNToReturn  :: Int
+  , ciNDeleted   :: Int
+  , ciNInserted  :: Int
+  , ciResLen     :: Int
+  , ciR          :: Int
+  , ciKeyUpdated :: Int
+  , ciCursorId   :: Int
+  , ciNumYields  :: Int
+  , ciRuntime    :: Int
+  } deriving ( Show, Eq, Ord )
+
+
+emptyCI :: CommandInfo
+emptyCI = CI
+  { ciNScanned   = -1
+  , ciNReturned  = -1
+  , ciNToSkip    = -1
+  , ciNToReturn  = -1
+  , ciNDeleted   = -1
+  , ciNInserted  = -1
+  , ciResLen     = -1
+  , ciR          = -1
+  , ciKeyUpdated = -1
+  , ciCursorId   = -1
+  , ciNumYields  = -1
+  , ciRuntime    = -1
+  }
 
 
 data LogLine = LogLine

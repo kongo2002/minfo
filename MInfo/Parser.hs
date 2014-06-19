@@ -8,7 +8,6 @@ import qualified Data.Attoparsec.ByteString.Lazy as AL
 import           Data.Attoparsec.ByteString.Char8
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as BL
-import           Data.Maybe         ( catMaybes )
 import           Data.Time
 
 import MInfo.Parser.Bson           ( parseDocument )
@@ -81,31 +80,35 @@ namespace =
   other = NsOther <$> takeTill (== ']')
 
 
-commandInfos :: Parser [CommandInfo]
+commandInfos :: Parser CommandInfo
 commandInfos =
-  catMaybes <$> (commandInfo `sepBy'` char ' ')
+  commandInfo emptyCI >>= go
+ where
+  go ci = (char ' ' *> commandInfo ci >>= go) <|> pure ci
 
 
-commandInfo :: Parser (Maybe CommandInfo)
-commandInfo =
+commandInfo :: CommandInfo -> Parser CommandInfo
+commandInfo ci =
   mapCmd <$> takeWhile1 isAlpha_ascii <*> (char ':' *> spc *> decimal)
-  <|> (Just . CiRuntime) <$> decimal <* string "ms"
+  <|> setRuntime <$> decimal <* string "ms"
   <|> unknown
  where
-  unknown = skipWhile (/= ' ') *> pure Nothing
+  unknown = skipWhile (/= ' ') *> pure ci
 
-  mapCmd "cursorid" x   = Just $ CiCursorId x
-  mapCmd "keyUpdates" x = Just $ CiKeyUpdated x
-  mapCmd "nreturned" x  = Just $ CiNReturned x
-  mapCmd "nscanned" x   = Just $ CiNScanned x
-  mapCmd "ninserted" x  = Just $ CiNInserted x
-  mapCmd "ndeleted" x   = Just $ CiNDeleted x
-  mapCmd "numYields" x  = Just $ CiNumYields x
-  mapCmd "ntoreturn" x  = Just $ CiNToReturn x
-  mapCmd "ntoskip" x    = Just $ CiNToSkip x
-  mapCmd "reslen" x     = Just $ CiResLen x
-  mapCmd "r" x          = Just $ CiR x
-  mapCmd _ _            = Nothing
+  setRuntime x = ci { ciRuntime = x }
+
+  mapCmd "cursorid" x   = ci { ciCursorId = x }
+  mapCmd "keyUpdates" x = ci { ciKeyUpdated = x }
+  mapCmd "nreturned" x  = ci { ciNReturned = x }
+  mapCmd "nscanned" x   = ci { ciNScanned = x }
+  mapCmd "ninserted" x  = ci { ciNInserted = x }
+  mapCmd "ndeleted" x   = ci { ciNDeleted = x }
+  mapCmd "numYields" x  = ci { ciNumYields = x }
+  mapCmd "ntoreturn" x  = ci { ciNToReturn = x }
+  mapCmd "ntoskip" x    = ci { ciNToSkip = x }
+  mapCmd "reslen" x     = ci { ciResLen = x }
+  mapCmd "r" x          = ci { ciR = x }
+  mapCmd _ _            = ci
 
 
 eol :: Parser BS.ByteString
