@@ -5,8 +5,9 @@ module MInfo.CmdLine
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import           System.Console.GetOpt
+import           System.Directory ( doesFileExist )
+import           System.Exit      ( exitWith, ExitCode(..), exitSuccess )
 import           System.IO
-import           System.Exit ( exitWith, ExitCode(..), exitSuccess )
 
 
 data Options = Options
@@ -37,33 +38,39 @@ defOptions = Options
 
 options :: [ OptDescr (Options -> IO Options) ]
 options =
-    [ Option "i" ["input"]
-        (ReqArg
-            (\arg opt -> return opt { oFile = Just arg })
-            "FILE")
-        "input file"
+  [ Option "i" ["input"]
+    (ReqArg
+      useFile
+      "FILE")
+    "input file"
 
-    , Option "o" ["output"]
-        (ReqArg
-            (\arg opt -> return opt { oOutput = arg })
-            "FILE")
-        "output file"
+  , Option "o" ["output"]
+    (ReqArg
+      (\arg opt -> return opt { oOutput = arg })
+      "FILE")
+    "output file"
 
-    , Option "v" ["verbose"]
-        (NoArg
-            (\opt -> return opt { oVerbose = True }))
-        "enable verbosity"
+  , Option "v" ["verbose"]
+    (NoArg
+      (\opt -> return opt { oVerbose = True }))
+    "enable verbosity"
 
-    , Option "V" ["version"]
-        (NoArg
-            (\_ -> err "minfo-0.0.1" >> exitSuccess))
-        "print version"
+  , Option "V" ["version"]
+    (NoArg
+      (\_ -> err "minfo-0.0.1" >> exitSuccess))
+    "print version"
 
-    , Option "h" ["help"]
-        (NoArg
-            (\_ -> err usage >> exitSuccess))
-        "show help"
-    ]
+  , Option "h" ["help"]
+    (NoArg
+      (\_ -> err usage >> exitSuccess))
+    "show help"
+  ]
+ where
+  useFile file opt = do
+    exists <- doesFileExist file
+    if exists
+    then return $ opt { oInput = readInput file, oFile = Just file }
+    else errExit "specified file does not exist"
 
 
 usage :: String

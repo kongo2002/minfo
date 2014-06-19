@@ -22,6 +22,7 @@ executable minfo
   build-depends:       base >= 4.6 && < 4.7,
                        bytestring,
                        containers,
+                       directory,
                        time,
                        attoparsec >= 0.11 && < 0.13
 
