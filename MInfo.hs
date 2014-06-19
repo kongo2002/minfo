@@ -53,17 +53,15 @@ output order qm =
   header  = table "NS:" "COUNT:" "MIN:" "MAX:" "AVG:" "SUM:"
 
   -- process one query aggregation
-  go ((ns, q), (c, mi, ma, s, _)) acc =
+  go ((ns, q), t@(c, mi, ma, s, _)) acc =
     table
       (BS.unpack ns)
       (show c)
       (show mi)
       (show ma)
-      (double2f avg)
+      (double2f $ avg t)
       (show s) <>
     tab <> encode q <> nl <> acc
-   where
-    avg = fromIntegral s / fromIntegral c
 
 
 getMs :: [CommandInfo] -> (Int, [Int])
@@ -77,8 +75,21 @@ getMs cs =
   get _                    = (0, [])
 
 
+avg :: (Int, Int, Int, Integer, [Int]) -> Double
+avg (c, _, _, s, _) = fromIntegral s / fromIntegral c
+
+
+byMin :: SortPredicate
+byMin (_, s1, _, _, _) (_, s2, _, _, _) = compare s2 s1
+
+byMax :: SortPredicate
+byMax (_, _, s1, _, _) (_, _, s2, _, _) = compare s2 s1
+
 bySum :: SortPredicate
 bySum (_, _, _, s1, _) (_, _, _, s2, _) = compare s2 s1
+
+byAvg :: SortPredicate
+byAvg t1 t2 = compare (avg t2) (avg t1)
 
 
 main :: IO ()
@@ -87,12 +98,14 @@ main = do
   opts     <- parseOpts =<< getArgs
   thisYear <- getCurrentYear
 
-  LBS.putStr =<< process thisYear <$> oInput opts
+  LBS.putStr =<< process thisYear (oSort opts) <$> oInput opts
  where
-  process y = output' . aggregate . parseFile y
+  process y s = sorted s . aggregate . parseFile y
 
-  -- TODO: choose sort order by command line argument
-  output'   = output bySum
+  sorted BySum = output bySum
+  sorted ByMin = output byMin
+  sorted ByMax = output byMax
+  sorted ByAvg = output byAvg
 
 
 -- vim: set et sw=2 sts=2 tw=80:

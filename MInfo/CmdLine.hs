@@ -1,6 +1,7 @@
 module MInfo.CmdLine
   ( parseOpts
   , Options(..)
+  , SortOrder(..)
   ) where
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
@@ -10,11 +11,20 @@ import           System.Exit      ( exitWith, ExitCode(..), exitSuccess )
 import           System.IO
 
 
+data SortOrder =
+    BySum
+  | ByMin
+  | ByMax
+  | ByAvg
+  deriving ( Eq )
+
+
 data Options = Options
   { oVerbose :: Bool
   , oFile    :: Maybe String
   , oInput   :: IO LBS.ByteString
   , oOutput  :: String
+  , oSort    :: SortOrder
   }
 
 
@@ -33,6 +43,7 @@ defOptions = Options
   , oFile    = Nothing
   , oInput   = getStdIn
   , oOutput  = ""
+  , oSort    = BySum
   }
 
 
@@ -50,6 +61,12 @@ options =
       "FILE")
     "output file"
 
+  , Option "s" ["sort"]
+    (ReqArg
+      sortOrder
+      "ORDER")
+    "sort order"
+
   , Option "v" ["verbose"]
     (NoArg
       (\opt -> return opt { oVerbose = True }))
@@ -66,11 +83,19 @@ options =
     "show help"
   ]
  where
+  -- check file existance
   useFile file opt = do
     exists <- doesFileExist file
     if exists
     then return $ opt { oInput = readInput file, oFile = Just file }
     else errExit "specified file does not exist"
+
+  -- determine sort order
+  sortOrder "sum" o = return o { oSort = BySum }
+  sortOrder "min" o = return o { oSort = ByMin }
+  sortOrder "max" o = return o { oSort = ByMax }
+  sortOrder "avg" o = return o { oSort = ByAvg }
+  sortOrder _     _ = errExit "unknown sort order specified"
 
 
 usage :: String
