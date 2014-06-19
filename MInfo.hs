@@ -91,7 +91,6 @@ byAvg t1 t2 = compare (avg t2) (avg t1)
 
 main :: IO ()
 main = do
-  -- TODO: proper argument parsing
   opts     <- parseOpts =<< getArgs
   thisYear <- getCurrentYear
 
