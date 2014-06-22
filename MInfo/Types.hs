@@ -97,6 +97,7 @@ data LogNamespace =
 data LogContent =
     LcQuery !QueryInfo
   | LcGetMore !QueryInfo
+  | LcUpdate !UpdateInfo
   | LcOther
   deriving ( Show, Eq, Ord )
 
@@ -105,6 +106,14 @@ data QueryInfo = QueryInfo
   { qiNamespace :: BS.ByteString
   , qiQuery     :: MongoElement
   , qiInfos     :: CommandInfo
+  } deriving ( Show, Eq, Ord )
+
+
+data UpdateInfo = UpdateInfo
+  { uiNamespace :: BS.ByteString
+  , uiQuery     :: MongoElement
+  , uiUpdate    :: MongoElement
+  , uiInfos     :: CommandInfo
   } deriving ( Show, Eq, Ord )
 
 

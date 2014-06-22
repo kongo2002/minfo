@@ -36,24 +36,39 @@ parseContent :: Parser LogContent
 parseContent =
   (LcQuery <$> query "query") <|>
   (LcGetMore <$> query "getmore") <|>
+  (LcUpdate <$> update) <|>
   other
  where
   other = toeol *> pure LcOther
 
 
+typens :: BS.ByteString -> Parser BS.ByteString
+typens t =
+  string t *> char ' ' *> takeTill isSpace <* spc
+
+
+query' :: BS.ByteString -> Parser MongoElement
+query' t =
+  string t *> char ':' *> spc *> parseDocument <* spc
+
+
 query :: BS.ByteString -> Parser QueryInfo
-query cmd = do
-  _ <- string cmd
-  _ <- char ' '
-  ns <- takeTill isSpace
-  spc
-  _ <- string "query: "
-  spc
-  q <- parseDocument
-  spc
+query t = do
+  ns <- typens t
+  q  <- query' "query"
   ci <- commandInfos
   toeol
   return $ QueryInfo ns q ci
+
+
+update :: Parser UpdateInfo
+update = do
+  ns <- typens "update"
+  q  <- query' "query"
+  u  <- query' "update"
+  ci <- commandInfos
+  toeol
+  return $ UpdateInfo ns q u ci
 
 
 parseNamespace :: Parser LogNamespace
