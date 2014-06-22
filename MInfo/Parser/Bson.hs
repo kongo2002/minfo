@@ -65,7 +65,7 @@ key =
 
 element :: Char -> Parser MongoElement
 element end =
-  skipSpace *> element'
+  skipSpace *> (simplify `fmap` element')
  where
   element' =
     MObject <$> objects <|>
@@ -112,6 +112,22 @@ operator =
   op s c = string s *> pure c
   gt     = string "gt" *> ((char 'e' *> pure GTE) <|> pure GT)
   lt     = string "lt" *> ((char 'e' *> pure LTE) <|> pure LT)
+
+
+simplify :: MongoElement -> MongoElement
+simplify MValue       = MValue
+simplify (MList xs)   = MList $ map simplify xs
+simplify (MObject xs) =
+  MObject $ map go xs
+ where
+  go x@(MKey _, _) = x
+  go x@(MOperator op, _v) =
+    case op of
+      In    -> (MOperator op, single)
+      NotIn -> (MOperator op, single)
+      _     -> x
+
+  single = MList [MValue]
 
 
 -- vim: set et sw=2 sts=2 tw=80:
