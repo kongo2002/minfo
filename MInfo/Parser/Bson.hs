@@ -107,6 +107,26 @@ operator =
     , op "type" Type
     , op "meta" Meta
     , op "slice" Slice
+    , op "inc" Inc
+    , op "mul" Mul
+    , op "rename" Rename
+    , op "unset" Unset
+    , op "set" Set
+    , op "setOnInsert" SetOnInsert
+    , op "min" Min
+    , op "max" Max
+    , op "currentDate" CurrentDate
+    , op "pull" Pull
+    , op "pullAll" PullAll
+    , op "push" Push
+    , op "pushAll" PushAll
+    , op "addToSet" AddToSet
+    , op "pop" Pop
+    , op "each" Each
+    , op "sort" Sort
+    , op "position" Position
+    , op "bit" Bit
+    , op "isolated" Isolated
     ]
  where
   op s c = string s *> pure c

@@ -38,36 +38,77 @@ data MongoOperator =
   -- projection
   | Meta
   | Slice
+  -- update
+  | Inc
+  | Mul
+  | Rename
+  | Unset
+  | Set
+  | SetOnInsert
+  | Min
+  | Max
+  | CurrentDate
+  | Pull
+  | PullAll
+  | Push
+  | PushAll
+  | AddToSet
+  | Pop
+  | Each
+  | Sort
+  | Position
+  | Bit
+  | Isolated
   deriving ( Eq, Ord )
 
 
 instance (Show MongoOperator) where
-  show  GT            = "$gt"
-  show  GTE           = "$gte"
-  show  In            = "$in"
-  show  LT            = "$lt"
-  show  LTE           = "$lte"
-  show  NE            = "$ne"
-  show  NotIn         = "$nin"
-  show  Or            = "$or"
-  show  And           = "$and"
-  show  Not           = "$not"
-  show  Nor           = "$not"
-  show  Exists        = "$exists"
-  show  Type          = "$type"
-  show  Mod           = "$mod"
-  show  Regex         = "$regex"
-  show  Text          = "$text"
-  show  Where         = "$where"
-  show  GeoWithin     = "$geoWithin"
-  show  GeoIntersects = "$geoIntersects"
-  show  Near          = "$near"
-  show  NearSphere    = "$nearSphere"
-  show  All           = "$all"
-  show  ElemMatch     = "$elemMatch"
-  show  Size          = "$size"
-  show  Meta          = "$meta"
-  show  Slice         = "$slice"
+  show GT            = "$gt"
+  show GTE           = "$gte"
+  show In            = "$in"
+  show LT            = "$lt"
+  show LTE           = "$lte"
+  show NE            = "$ne"
+  show NotIn         = "$nin"
+  show Or            = "$or"
+  show And           = "$and"
+  show Not           = "$not"
+  show Nor           = "$not"
+  show Exists        = "$exists"
+  show Type          = "$type"
+  show Mod           = "$mod"
+  show Regex         = "$regex"
+  show Text          = "$text"
+  show Where         = "$where"
+  show GeoWithin     = "$geoWithin"
+  show GeoIntersects = "$geoIntersects"
+  show Near          = "$near"
+  show NearSphere    = "$nearSphere"
+  show All           = "$all"
+  show ElemMatch     = "$elemMatch"
+  show Size          = "$size"
+  show Meta          = "$meta"
+  show Slice         = "$slice"
+  show Inc           = "$inc"
+  show Mul           = "$mul"
+  show Rename        = "$rename"
+  show Unset         = "$unset"
+  show Set           = "$set"
+  show SetOnInsert   = "$setOnInsert"
+  show Min           = "$min"
+  show Max           = "$max"
+  show CurrentDate   = "$currentDate"
+  show Pull          = "$pull"
+  show PullAll       = "$pullAll"
+  show Push          = "$push"
+  show PushAll       = "$pushAll"
+  show AddToSet      = "$addToSet"
+  show Pop           = "$pop"
+  show Each          = "$each"
+  show Sort          = "$sort"
+  show Position      = "$position"
+  show Bit           = "$bit"
+  show Isolated      = "$isolated"
 
 
 data MongoKey =
