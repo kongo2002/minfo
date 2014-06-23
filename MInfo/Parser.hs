@@ -184,6 +184,38 @@ month =
   month' _     = error "captain! we've been hit"
 
 
+corr :: Parser Integer
+corr =
+  (char '+' *> (p  <$> decimal <*> (char ':' *> decimal))) <|>
+  (char '-' *> (p' <$> decimal <*> (char ':' *> decimal))) <|>
+  optional (char 'Z') *> return 0
+ where
+  p  h m = h * 60 + m
+  p' h m = (h * 60 + m) * (-1)
+
+
+iso8601 :: Parser UTCTime
+iso8601 = do
+  y <- decimal
+  _ <- char '-'
+  m <- decimal
+  _ <- char '-'
+  d <- decimal
+  _ <- char 'T'
+  h <- decimal
+  _ <- char ':'
+  mi <- decimal
+  _ <- char ':'
+  s <- decimal
+  c <- corr
+  return $
+    UTCTime (fromGregorian y (fromInteger m) d)
+            (time' h (mi + c) s)
+ where
+  time' h m s = picosecondsToDiffTime $
+    (s + m * 60 + h * 3600) * 1000 * 1000000000
+
+
 spc :: Parser ()
 spc = skipWhile (== ' ')
 
