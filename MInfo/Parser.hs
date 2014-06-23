@@ -155,10 +155,12 @@ time = do
   m <- decimal
   _ <- char ':'
   s <- decimal
-  _ <- char '.'
-  ms <- decimal
+  ms <- millis
   return . picos $ time' h m s ms
  where
+  -- there are obviously mongodb versions that
+  -- do not log with milliseconds precision...
+  millis = char '.' *> decimal <|> return 0
   time' h m s ms = (s + m * 60 + h * 3600) * 1000 + ms
   picos = picosecondsToDiffTime . (* 1000000000)
 
