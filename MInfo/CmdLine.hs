@@ -80,7 +80,7 @@ options =
   , Option "h" ["help"]
     (NoArg
       (\_ -> err usage >> exitSuccess))
-    "show help"
+    "show this help"
   ]
  where
   -- check file existance
@@ -99,7 +99,18 @@ options =
 
 
 usage :: String
-usage = usageInfo "minfo" options
+usage =
+  usageInfo header options
+ where
+  header = unlines
+    [ "Usage: minfo [OPTION]... [FILE]"
+    , ""
+    , "In case no FILE and no -i option is specified the "
+    , "input is read from stdin."
+    , ""
+    , "The sort order may be one of 'sum', 'min', 'max' and 'avg'"
+    , "and defaults to 'sum' if none is specified."
+    ]
 
 
 parseOpts :: [String] -> IO Options
