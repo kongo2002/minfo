@@ -101,7 +101,7 @@ main = do
   opts     <- parseOpts =<< getArgs
   thisYear <- getCurrentYear
 
-  LBS.putStr =<< process thisYear (oSort opts) <$> oInput opts
+  process thisYear (oSort opts) <$> oInput opts >>= oOutput opts
  where
   process y s = sorted s . aggregate . parseFile y
 

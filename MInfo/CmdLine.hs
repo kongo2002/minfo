@@ -23,7 +23,7 @@ data Options = Options
   { oVerbose :: Bool
   , oFile    :: Maybe String
   , oInput   :: IO LBS.ByteString
-  , oOutput  :: String
+  , oOutput  :: LBS.ByteString -> IO ()
   , oSort    :: SortOrder
   }
 
@@ -42,7 +42,7 @@ defOptions = Options
   { oVerbose = False
   , oFile    = Nothing
   , oInput   = getStdIn
-  , oOutput  = ""
+  , oOutput  = LBS.putStrLn
   , oSort    = BySum
   }
 
@@ -57,7 +57,7 @@ options =
 
   , Option "o" ["output"]
     (ReqArg
-      (\arg opt -> return opt { oOutput = arg })
+      (\arg opt -> return opt { oOutput = LBS.writeFile arg })
       "FILE")
     "output file"
 
@@ -105,11 +105,14 @@ usage =
   header = unlines
     [ "Usage: minfo [OPTION]... [FILE]"
     , ""
-    , "In case no FILE and no -i option is specified the "
+    , "In case no FILE and no -i option is specified the"
     , "input is read from stdin."
     , ""
     , "The sort order may be one of 'sum', 'min', 'max' and 'avg'"
     , "and defaults to 'sum' if none is specified."
+    , ""
+    , "The output is written by default to stdout but may be"
+    , "written to a file via the -o option."
     ]
 
 
