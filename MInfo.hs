@@ -52,7 +52,9 @@ getMs ci
 
 output :: SortPredicate -> QueryMap -> LBS.ByteString
 output order qm =
-  toLazyByteString $ header <> foldr go mempty input
+  case input of
+    [] -> LBS.empty
+    xs -> toLazyByteString $ header <> foldr go mempty xs
  where
   nl      = charUtf8 '\n'
   tab     = stringUtf8 "    "
