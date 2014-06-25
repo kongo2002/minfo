@@ -28,18 +28,23 @@ type QueryMap = M.Map MapKey (Int, Int, Int, Integer, [Int])
 
 aggregate :: [LogLine] -> QueryMap
 aggregate ls =
-  M.fromListWith group ls'
+  M.fromListWith group $ concatMap query ls
  where
   -- running calculation of length, min, max, sum
-  group (_, _, _, _, [x]) (c, mi, ma, s, acc) =
-   (c+1, min mi x, max ma x, s+toInteger x, x:acc)
-  group _ acc   = acc
+  group (_, _, _, _, [r]) (c, mi, ma, s, rs) =
+   (c+1, min mi r, max ma r, s+toInteger r, r:rs)
+  group _ rs   = rs
 
-  ls'     = [acc0 qi | LogLine _ _ (LcQuery qi) <- ls]
-  acc0 qi = (key, (1, ms, ms, toInteger ms, ms'))
+  query (LogLine _ _ content) =
+    case content of
+      (LcQuery (QueryInfo ns q ci))     -> [((ns, q), acc ci)]
+      (LcGetMore (QueryInfo ns q ci))   -> [((ns, q), acc ci)]
+      (LcUpdate (UpdateInfo ns q _ ci)) -> [((ns, q), acc ci)]
+      _ -> []
+
+  acc ci = (1, ms, ms, toInteger ms, ms')
    where
-    (ms, ms') = getMs (qiInfos qi)
-    key       = (qiNamespace qi, qiQuery qi)
+    (ms, ms') = getMs ci
 
 
 getMs :: CommandInfo -> (Int, [Int])

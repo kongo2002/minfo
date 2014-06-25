@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module MInfo.Parser where
+module MInfo.Parser
+  ( parseFile
+  ) where
 
 import           Prelude hiding     ( take )
 import           Control.Applicative
