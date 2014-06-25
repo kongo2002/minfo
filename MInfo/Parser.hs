@@ -140,6 +140,9 @@ toeol = skipWhile (not . iseol)
 
 date :: Integer -> Parser UTCTime
 date year =
+  -- first try to parse according to ISO8601 (>= mongodb-2.6)
+  iso8601 <|>
+  -- otherwise try to parse the alternative format (<= mongodb-2.4)
   take 4 *> (UTCTime <$> day year <*> time) <* char ' '
 
 
