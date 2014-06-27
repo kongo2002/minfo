@@ -143,7 +143,7 @@ toeol = skipWhile (not . iseol)
 date :: Integer -> Parser UTCTime
 date year =
   -- first try to parse according to ISO8601 (>= mongodb-2.6)
-  iso8601 <|>
+  iso8601 <* char ' ' <|>
   -- otherwise try to parse the alternative format (<= mongodb-2.4)
   take 4 *> (UTCTime <$> day year <*> time) <* char ' '
 
@@ -163,11 +163,12 @@ time = do
   ms <- millis
   return . picos $ time' h m s ms
  where
-  -- there are obviously mongodb versions that
-  -- do not log with milliseconds precision...
-  millis = char '.' *> decimal <|> return 0
   time' h m s ms = (s + m * 60 + h * 3600) * 1000 + ms
   picos = picosecondsToDiffTime . (* 1000000000)
+
+
+millis :: Parser Integer
+millis = char '.' *> decimal <|> return 0
 
 
 month :: Parser Int
@@ -189,14 +190,18 @@ month =
   month' _     = error "captain! we've been hit"
 
 
-corr :: Parser Integer
-corr =
-  (char '+' *> (p  <$> decimal <*> (char ':' *> decimal))) <|>
-  (char '-' *> (p' <$> decimal <*> (char ':' *> decimal))) <|>
+correction :: Parser Integer
+correction =
+  (char '+' *> corr) <|>
+  (char '-' *> (neg <$> corr)) <|>
   optional (char 'Z') *> return 0
  where
-  p  h m = h * 60 + m
-  p' h m = (h * 60 + m) * (-1)
+  -- try to parse either '02:00' or '0200'
+  corr = tomin <$> decimal <*> (char ':' *> decimal <|> return 0)
+  tomin h m
+    | h < 100   = h * 60 + m
+    | otherwise = (h `div` 100) * 60 + m
+  neg = (* (-1))
 
 
 iso8601 :: Parser UTCTime
@@ -212,13 +217,14 @@ iso8601 = do
   mi <- decimal
   _ <- char ':'
   s <- decimal
-  c <- corr
+  ms <- millis
+  c <- correction
   return $
     UTCTime (fromGregorian y (fromInteger m) d)
-            (time' h (mi + c) s)
+            (time' h (mi + c) s ms)
  where
-  time' h m s = picosecondsToDiffTime $
-    (s + m * 60 + h * 3600) * 1000 * 1000000000
+  time' h m s ms = picosecondsToDiffTime $
+    ((s + m * 60 + h * 3600) * 1000 + ms) * 1000000000
 
 
 spc :: Parser ()
