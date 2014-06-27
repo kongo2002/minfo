@@ -155,20 +155,25 @@ day year =
 
 time :: Parser DiffTime
 time = do
-  h <- decimal
-  _ <- char ':'
-  m <- decimal
-  _ <- char ':'
-  s <- decimal
-  ms <- millis
+  (h, m, s, ms) <- hms
   return . picos $ time' h m s ms
  where
   time' h m s ms = (s + m * 60 + h * 3600) * 1000 + ms
   picos = picosecondsToDiffTime . (* 1000000000)
 
 
-millis :: Parser Integer
-millis = char '.' *> decimal <|> return 0
+hms :: Parser (Integer, Integer, Integer, Integer)
+hms = do
+  h  <- decimal
+  _  <- char ':'
+  m  <- decimal
+  _  <- char ':'
+  s  <- decimal
+  ms <- millis
+  return (h, m, s, ms)
+ where
+  -- not every mongodb logs with milliseconds precision
+  millis = char '.' *> decimal <|> return 0
 
 
 month :: Parser Int
@@ -212,12 +217,7 @@ iso8601 = do
   _ <- char '-'
   d <- decimal
   _ <- char 'T'
-  h <- decimal
-  _ <- char ':'
-  mi <- decimal
-  _ <- char ':'
-  s <- decimal
-  ms <- millis
+  (h, mi, s, ms) <- hms
   c <- correction
   return $
     UTCTime (fromGregorian y (fromInteger m) d)
