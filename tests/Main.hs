@@ -5,11 +5,10 @@ module Main ( main ) where
 import           Data.Attoparsec.ByteString.Char8 ( parseOnly )
 import qualified Data.ByteString.Char8 as BS
 
-import           Test.HUnit                       ( (@=?), Assertion )
+import           Test.HUnit                       ( (@=?) )
 import           Test.Framework                   ( defaultMain, testGroup, Test )
 import           Test.Framework.Providers.HUnit   ( testCase )
 
-import           Data.MInfo.Parser
 import           Data.MInfo.Parser.Bson           ( parseDocument )
 import           Data.MInfo.Types
 
@@ -30,5 +29,14 @@ tests =
     [ testCase "empty document" (MObject [] @=? bson "{}")
     , testCase "empty document" (MObject [] @=? bson " {} ")
     , testCase "empty document" (MObject [] @=? bson "{  }")
+    , testCase "number" (MValue @=? bson "12")
+    , testCase "number" (MValue @=? bson "0.2352")
+    , testCase "number" (MValue @=? bson "-152.23")
+    , testCase "number" (MValue @=? bson " 52 ")
+    , testCase "string" (MValue @=? bson "\"foo\"")
+    , testCase "string" (MValue @=? bson "\"  foo  \"")
+    , testCase "string" (MValue @=? bson "  \"  foo  \" ")
+    , testCase "string" (MValue @=? bson "\"  { }  \"")
+    , testCase "string" (MValue @=? bson "\" \\\"   \"")
     ]
   ]
