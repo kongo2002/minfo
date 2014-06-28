@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module MInfo.Parser
+module Data.MInfo.Parser
   ( parseFile
   ) where
 
@@ -12,8 +12,8 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as BL
 import           Data.Time
 
-import MInfo.Parser.Bson           ( parseDocument )
-import MInfo.Types
+import Data.MInfo.Parser.Bson       ( parseDocument )
+import Data.MInfo.Types
 
 
 parseFile :: Integer -> BL.ByteString -> [LogLine]

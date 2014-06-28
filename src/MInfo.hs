@@ -11,11 +11,11 @@ import qualified Data.Map.Strict as M
 import           Data.Monoid        ( mempty )
 import           System.Environment ( getArgs )
 
-import MInfo.CmdLine
-import MInfo.Encoder
-import MInfo.Parser
-import MInfo.Types
-import MInfo.Utils
+import Data.MInfo.CmdLine
+import Data.MInfo.Encoder
+import Data.MInfo.Parser
+import Data.MInfo.Types
+import Data.MInfo.Utils
 
 
 type SortPredicate = (Int, Int, Int, Integer, [Int])

@@ -1,35 +1,79 @@
-name:                minfo
-version:             0.1.0.0
-cabal-version:       >=1.10
+name:               minfo
+version:            0.1.0.0
+cabal-version:      >=1.10
 
-synopsis:            Tool to analyze mongodb log files
-description:         Tool to analyze mongodb log files
-homepage:            https://github.com/kongo2002/minfo/
-license:             Apache-2.0
-license-file:        LICENSE
+synopsis:           Tool to analyze mongodb log files
+description:        Tool to analyze mongodb log files
+homepage:           https://github.com/kongo2002/minfo/
+license:            Apache-2.0
+license-file:       LICENSE
 
-author:              Gregor Uhlenheuer <kongo2002@googlemail.com>
-maintainer:          Gregor Uhlenheuer <kongo2002@googlemail.com>
-copyright:           (c) 2014 Gregor Uhlenheuer
+author:             Gregor Uhlenheuer <kongo2002@googlemail.com>
+maintainer:         Gregor Uhlenheuer <kongo2002@googlemail.com>
+copyright:          (c) 2014 Gregor Uhlenheuer
 
-category:            Program
-build-type:          Simple
+category:           Program
+build-type:         Simple
+
+
+library
+  build-depends:    base >= 4.6 && < 4.7,
+                    bytestring,
+                    containers,
+                    directory,
+                    time,
+                    attoparsec >= 0.11 && < 0.13
+
+  exposed-modules:  Data.MInfo.CmdLine
+                    Data.MInfo.Encoder
+                    Data.MInfo.Parser
+                    Data.MInfo.Parser.Bson
+                    Data.MInfo.Types
+                    Data.MInfo.Utils
+
+  ghc-options:      -O2 -Wall
+
+  default-language: Haskell2010
+  other-extensions: OverloadedStrings
+
 
 executable minfo
-  main-is:             MInfo.hs
-  other-extensions:    OverloadedStrings
+  main-is:          MInfo.hs
+  hs-source-dirs:   src
 
-  build-depends:       base >= 4.6 && < 4.7,
-                       bytestring,
-                       containers,
-                       directory,
-                       time,
-                       attoparsec >= 0.11 && < 0.13
+  build-depends:    minfo,
+                    base >= 4.6 && < 4.7,
+                    bytestring,
+                    containers,
+                    directory,
+                    time,
+                    attoparsec >= 0.11 && < 0.13
 
-  ghc-options:         -O2 -Wall
+  ghc-options:      -O2 -Wall
 
-  default-language:    Haskell2010
+  default-language: Haskell2010
+  other-extensions: OverloadedStrings
+
+
+test-suite tests
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   tests
+  main-is:          Main.hs
+
+  build-depends:    minfo,
+                    base,
+                    attoparsec,
+                    bytestring,
+                    HUnit,
+                    test-framework,
+                    test-framework-hunit
+
+  ghc-options:      -Wall -threaded
+
+  default-language: Haskell2010
+  other-extensions: OverloadedStrings
+
 
 source-repository head
-    type:       git
-    location:   git://github.com/kongo2002/minfo.git
+    type:           git
+    location:       git://github.com/kongo2002/minfo.git

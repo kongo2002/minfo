@@ -1,4 +1,4 @@
-module MInfo.CmdLine
+module Data.MInfo.CmdLine
   ( parseOpts
   , Options(..)
   , SortOrder(..)

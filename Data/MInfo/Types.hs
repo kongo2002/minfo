@@ -1,4 +1,4 @@
-module MInfo.Types where
+module Data.MInfo.Types where
 
 import           Prelude hiding ( GT, LT )
 import qualified Data.ByteString.Char8 as BS

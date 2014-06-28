@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module MInfo.Encoder
+module Data.MInfo.Encoder
   ( encode
   , encodeLBS
   ) where
@@ -9,8 +9,8 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as LBS
 import           Data.ByteString.Lazy.Builder
 
-import           MInfo.Types
-import           MInfo.Utils
+import           Data.MInfo.Types
+import           Data.MInfo.Utils
 
 
 encodeLBS :: MongoElement -> LBS.ByteString

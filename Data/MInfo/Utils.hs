@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module MInfo.Utils where
+module Data.MInfo.Utils where
 
 import Data.ByteString.Lazy.Builder
 import Data.Monoid ( mappend, Monoid, mempty )
