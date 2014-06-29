@@ -16,7 +16,7 @@ main = do
   year     <- getCurrentYear
   loglines <- oInput opts
 
-  LBS.putStrLn $ getOperation opts (parseFile year loglines)
+  LBS.putStr $ getOperation opts (parseFile year loglines)
 
 
 -- vim: set et sw=2 sts=2 tw=80:
