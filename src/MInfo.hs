@@ -13,10 +13,10 @@ import Data.MInfo.Utils
 main :: IO ()
 main = do
   opts     <- parseOpts =<< getArgs
-  thisYear <- getCurrentYear
+  year     <- getCurrentYear
+  loglines <- oInput opts
 
-  ls <- oInput opts
-  LBS.putStrLn $ getOperation opts (parseFile thisYear ls)
+  LBS.putStrLn $ getOperation opts (parseFile year loglines)
 
 
 -- vim: set et sw=2 sts=2 tw=80:
