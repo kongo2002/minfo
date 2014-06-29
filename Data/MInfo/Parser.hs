@@ -39,6 +39,8 @@ parseContent =
   (LcQuery <$> query "query") <|>
   (LcGetMore <$> query "getmore") <|>
   (LcUpdate <$> update) <|>
+  (LcAcceptConnection <$> acceptConn) <|>
+  (LcEndConnection <$> endConn) <|>
   other
  where
   other = toeol *> pure LcOther
@@ -47,6 +49,16 @@ parseContent =
 typens :: BS.ByteString -> Parser BS.ByteString
 typens t =
   string t *> char ' ' *> takeTill isSpace <* spc
+
+
+acceptConn :: Parser BS.ByteString
+acceptConn =
+  string "connection accepted from " *> takeTill (== ':') <* toeol
+
+
+endConn :: Parser BS.ByteString
+endConn =
+  string "end connection " *> takeTill (== ':') <* toeol
 
 
 query' :: BS.ByteString -> Parser MongoElement

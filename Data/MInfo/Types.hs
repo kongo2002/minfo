@@ -139,6 +139,8 @@ data LogContent =
     LcQuery !QueryInfo
   | LcGetMore !QueryInfo
   | LcUpdate !UpdateInfo
+  | LcAcceptConnection BS.ByteString
+  | LcEndConnection BS.ByteString
   | LcOther
   deriving ( Show, Eq, Ord )
 
