@@ -24,10 +24,10 @@ connections ls =
   go (k, (o, c)) acc =
     pad 20 (BS.unpack k) <>
     pad 12 (show o) <>
-    pad 12 (show c) <>
+    stringUtf8 (show c) <>
     nl <> acc
 
-  header = pad 20 "IP:" <> pad 12 "CONN:" <> pad 12 "DISCONN:" <> nl
+  header = pad 20 "IP:" <> pad 12 "CONN:" <> stringUtf8 "DISCONN:" <> nl
   sort   = sortBy (comparing byConn) . M.toList . connections'
   byConn = fst . snd
   nl     = charUtf8 '\n'
