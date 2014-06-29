@@ -1,8 +1,11 @@
+{-# LANGUAGE ViewPatterns #-}
+
 module Data.MInfo.CmdLine
   ( parseOpts
   ) where
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
+import           Data.List        ( inits )
 import           System.Console.GetOpt
 import           System.Directory ( doesFileExist )
 import           System.Exit      ( exitWith, ExitCode(..), exitSuccess )
@@ -87,7 +90,12 @@ usage =
   usageInfo header options
  where
   header = unlines
-    [ "Usage: minfo [OPTION]... [FILE]"
+    [ "Usage: minfo [COMMAND] [OPTION]... [FILE]"
+    , ""
+    , "The COMMAND to execute has to be one of the following:"
+    , ""
+    , " queries      accumulate queries by their execution time"
+    , " connections  calculate connection state changes"
     , ""
     , "In case no FILE and no -i option is specified the"
     , "input is read from stdin."
@@ -109,13 +117,29 @@ parseOpts args =
     -- errors
     (_, _, es) -> ioError (userError (concat es ++ usage))
  where
-  -- use positional argument in case
-  -- the input file wasn't passed explicitely
-  pos [x] opts =
-    case oFile opts of
-      Nothing -> return $ opts { oInput = readInput x }
-      _       -> return opts
-  pos _ opts = return opts
+  -- process positional arguments
+  pos [] _        = errExit usage
+  pos (x:xs) opts =
+    case op' x of
+      Just operation -> file xs (opts { oOperation = operation })
+      Nothing        -> errExit usage
+   where
+    file [f] o =
+      case oFile opts of
+        Nothing -> return $ o { oInput = readInput f }
+        _       -> return o
+    file _ o = return o
+
+  op' (op "queries" -> True)     = Just Queries
+  op' (op "connections" -> True) = Just Connections
+  op' _                          = Nothing
+
+
+op :: String -> String -> Bool
+op key input =
+  input `elem` candidates key
+ where
+  candidates = tail . inits
 
 
 err :: String -> IO ()
