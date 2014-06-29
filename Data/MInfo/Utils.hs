@@ -3,7 +3,7 @@
 module Data.MInfo.Utils where
 
 import Data.ByteString.Lazy.Builder
-import Data.Monoid ( mappend, Monoid, mempty )
+import Data.Monoid ( mappend, Monoid )
 import Data.Time
 import Numeric     ( showGFloat )
 
@@ -22,7 +22,7 @@ table ns c mi ma avg s =
   pad 10 ma <>
   pad 10 avg <>
   trim 10 s <>
-  charUtf8 '\n' <> mempty
+  charUtf8 '\n'
 
 
 trim :: Int -> String -> Builder
