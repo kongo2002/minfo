@@ -1,7 +1,5 @@
 module Data.MInfo.CmdLine
   ( parseOpts
-  , Options(..)
-  , SortOrder(..)
   ) where
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
@@ -10,22 +8,7 @@ import           System.Directory ( doesFileExist )
 import           System.Exit      ( exitWith, ExitCode(..), exitSuccess )
 import           System.IO
 
-
-data SortOrder =
-    BySum
-  | ByMin
-  | ByMax
-  | ByAvg
-  deriving ( Eq )
-
-
-data Options = Options
-  { oVerbose :: Bool
-  , oFile    :: Maybe String
-  , oInput   :: IO LBS.ByteString
-  , oOutput  :: LBS.ByteString -> IO ()
-  , oSort    :: SortOrder
-  }
+import Data.MInfo.Types
 
 
 getStdIn :: IO LBS.ByteString
@@ -39,11 +22,12 @@ readInput file =
 
 defOptions :: Options
 defOptions = Options
-  { oVerbose = False
-  , oFile    = Nothing
-  , oInput   = getStdIn
-  , oOutput  = LBS.putStrLn
-  , oSort    = BySum
+  { oVerbose   = False
+  , oFile      = Nothing
+  , oInput     = getStdIn
+  , oOutput    = LBS.putStrLn
+  , oSort      = BySum
+  , oOperation = Queries
   }
 
 

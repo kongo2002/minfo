@@ -2,6 +2,7 @@ module Data.MInfo.Types where
 
 import           Prelude hiding ( GT, LT )
 import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy as LBS
 import           Data.Time ( UTCTime )
 
 data MongoOperator =
@@ -198,6 +199,29 @@ data LogLine = LogLine
   , lNamespace :: LogNamespace
   , lContent   :: !LogContent
   } deriving ( Show, Eq, Ord )
+
+
+data Operations =
+    Queries
+  | Connections
+
+
+data SortOrder =
+    BySum
+  | ByMin
+  | ByMax
+  | ByAvg
+  deriving ( Eq )
+
+
+data Options = Options
+  { oVerbose   :: Bool
+  , oFile      :: Maybe String
+  , oInput     :: IO LBS.ByteString
+  , oOutput    :: LBS.ByteString -> IO ()
+  , oSort      :: SortOrder
+  , oOperation :: Operations
+  }
 
 
 -- vim: set et sw=2 sts=2 tw=80:

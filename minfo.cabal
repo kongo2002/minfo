@@ -26,6 +26,9 @@ library
 
   exposed-modules:  Data.MInfo.CmdLine
                     Data.MInfo.Encoder
+                    Data.MInfo.Operation
+                    Data.MInfo.Operation.Connections
+                    Data.MInfo.Operation.Queries
                     Data.MInfo.Parser
                     Data.MInfo.Parser.Bson
                     Data.MInfo.Types
