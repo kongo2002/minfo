@@ -23,9 +23,14 @@ table ns c mi ma avg s =
   pad 10 avg <>
   trim 10 s <>
   charUtf8 '\n' <> mempty
- where
-  trim l x = stringUtf8 $ take l x
-  pad l x  = stringUtf8 $ take l (x ++ replicate l ' ') ++ " "
+
+
+trim :: Int -> String -> Builder
+trim l x = stringUtf8 $ take l x
+
+
+pad :: Int -> String -> Builder
+pad l x  = stringUtf8 $ take l (x ++ replicate l ' ') ++ " "
 
 
 double2f :: Double -> String
