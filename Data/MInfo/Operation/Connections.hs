@@ -28,7 +28,7 @@ connections ls =
     nl <> acc
 
   header = pad 20 "IP:" <> pad 12 "CONN:" <> stringUtf8 "DISCONN:" <> nl
-  sort   = sortBy (comparing byConn) . M.toList . connections'
+  sort   = sortBy (flip (comparing byConn)) . M.toList . connections'
   byConn = fst . snd
   nl     = charUtf8 '\n'
 
