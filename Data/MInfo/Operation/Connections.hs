@@ -1,3 +1,5 @@
+{-# LANGUAGE BangPatterns #-}
+
 module Data.MInfo.Operation.Connections where
 
 import qualified Data.ByteString.Char8 as BS
@@ -37,7 +39,7 @@ connections' :: [LogLine] -> ConnectionMap
 connections' ls =
   M.fromListWith go $ concatMap conns ls
  where
-  go (o, c) (o', c') = (o+o', c+c')
+  go (!o, !c) (!o', !c') = (o+o', c+c')
 
   conns (LogLine _ _ content) =
     case content of
