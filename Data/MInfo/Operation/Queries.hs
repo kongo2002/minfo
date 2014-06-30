@@ -1,6 +1,6 @@
-{-# LANGUAGE BangPatterns #-}
-
-module Data.MInfo.Operation.Queries where
+module Data.MInfo.Operation.Queries
+  ( queries
+  ) where
 
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as LBS
@@ -14,12 +14,20 @@ import Data.MInfo.Types
 import Data.MInfo.Utils
 
 
-type SortPredicate = (Int, Int, Int, Integer, [Int])
-                  -> (Int, Int, Int, Integer, [Int])
+data QV = QV
+  {-# UNPACK #-} !Int
+  {-# UNPACK #-} !Int
+  {-# UNPACK #-} !Int
+  !Integer
+  ![Int]
+
+
+type SortPredicate = QV
+                  -> QV
                   -> Ordering
 
 type MapKey   = (BS.ByteString, MongoElement)
-type QueryMap = M.Map MapKey (Int, Int, Int, Integer, [Int])
+type QueryMap = M.Map MapKey QV
 
 
 queries :: SortOrder -> [LogLine] -> LBS.ByteString
@@ -45,7 +53,7 @@ output order qm =
   header  = table "NS:" "COUNT:" "MIN:" "MAX:" "AVG:" "SUM:"
 
   -- process one query aggregation
-  go ((ns, q), t@(c, mi, ma, s, _)) acc =
+  go ((ns, q), t@(QV c mi ma s _)) acc =
     table
       (BS.unpack ns)
       (show c)
@@ -61,8 +69,8 @@ queries' ls =
   M.fromListWith group $ concatMap query ls
  where
   -- running calculation of length, min, max, sum
-  group (_, _, _, _, [r]) (!c, !mi, !ma, !s, !rs) =
-   (c+1, min mi r, max ma r, s+toInteger r, r:rs)
+  group (QV _ _ _ _ [r]) (QV c mi ma s rs) =
+   QV (c+1) (min mi r) (max ma r) (s+toInteger r) (r:rs)
   group _ rs   = rs
 
   query (LogLine _ _ content) =
@@ -72,7 +80,7 @@ queries' ls =
       (LcUpdate (UpdateInfo ns q _ ci)) -> [((ns, q), acc ci)]
       _ -> []
 
-  acc ci = (1, ms, ms, toInteger ms, ms')
+  acc ci = QV 1 ms ms (toInteger ms) ms'
    where
     (ms, ms') = getMs ci
 
@@ -85,18 +93,18 @@ getMs ci
   ms = ciRuntime ci
 
 
-avg :: (Int, Int, Int, Integer, [Int]) -> Double
-avg (c, _, _, s, _) = fromIntegral s / fromIntegral c
+avg :: QV -> Double
+avg (QV c _ _ s _) = fromIntegral s / fromIntegral c
 
 
 byMin :: SortPredicate
-byMin (_, s1, _, _, _) (_, s2, _, _, _) = compare s2 s1
+byMin (QV _ s1 _ _ _) (QV _ s2 _ _ _) = compare s2 s1
 
 byMax :: SortPredicate
-byMax (_, _, s1, _, _) (_, _, s2, _, _) = compare s2 s1
+byMax (QV _ _ s1 _ _) (QV _ _ s2 _ _) = compare s2 s1
 
 bySum :: SortPredicate
-bySum (_, _, _, s1, _) (_, _, _, s2, _) = compare s2 s1
+bySum (QV _ _ _ s1 _) (QV _ _ _ s2 _) = compare s2 s1
 
 byAvg :: SortPredicate
 byAvg t1 t2 = compare (avg t2) (avg t1)
