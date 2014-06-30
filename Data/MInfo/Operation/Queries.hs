@@ -1,3 +1,5 @@
+{-# LANGUAGE BangPatterns #-}
+
 module Data.MInfo.Operation.Queries where
 
 import qualified Data.ByteString.Char8 as BS
@@ -59,7 +61,7 @@ queries' ls =
   M.fromListWith group $ concatMap query ls
  where
   -- running calculation of length, min, max, sum
-  group (_, _, _, _, [r]) (c, mi, ma, s, rs) =
+  group (_, _, _, _, [r]) (!c, !mi, !ma, !s, !rs) =
    (c+1, min mi r, max ma r, s+toInteger r, r:rs)
   group _ rs   = rs
 
