@@ -42,10 +42,12 @@ parseContent ns =
       (LcQuery <$> query "query") <|>
       (LcGetMore <$> query "getmore") <|>
       (LcUpdate <$> update) <|>
+      (LcEndConnection <$> endConn) <|>
+      other
+    NsInitAndListen ->
+      (LcAcceptConnection <$> acceptConn) <|>
       other
     _ ->
-      (LcAcceptConnection <$> acceptConn) <|>
-      (LcEndConnection <$> endConn) <|>
       other
  where
   other = toeol *> pure LcOther
