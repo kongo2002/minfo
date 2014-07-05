@@ -98,20 +98,32 @@ parseNamespace =
 namespace :: Parser LogNamespace
 namespace =
   connection <|>
-  healthPoll <|>
-  ttlMonitor <|>
+  replicaSet <|>
   initAndListen <|>
+  ttlMonitor <|>
   webServer <|>
   fileAllocator <|>
   other
  where
   initAndListen = "initandlisten" *> pure NsInitAndListen
-  healthPoll    = "rsHealthPoll" *> pure NsHealthPoll
   fileAllocator = "FileAllocator" *> pure NsFileAllocator
   ttlMonitor    = "TTLMonitor" *> pure NsTTLMonitor
   webServer     = "websvr" *> pure NsWebServer
   connection    = "conn" *> (NsConnection <$> decimal)
   other = NsOther <$> takeTill (== ']')
+
+
+replicaSet :: Parser LogNamespace
+replicaSet =
+  string "rs" *> choice
+    [ "HealthPoll" *> pure NsRsHealthPoll
+    , "Mgr" *> pure NsRsManager
+    , "GhostSync" *> pure NsRsGhostSync
+    , "BackgroundSync" *> pure NsRsBackgroundSync
+    , "SyncNotifier" *> pure NsRsSyncNotifier
+    , "Sync" *> pure NsRsSync
+    , "Start" *> pure NsRsStart
+    ]
 
 
 commandInfos :: Parser CommandInfo

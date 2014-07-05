@@ -126,7 +126,13 @@ data MongoElement =
 
 
 data LogNamespace =
-    NsHealthPoll
+    NsRsHealthPoll
+  | NsRsManager
+  | NsRsSync
+  | NsRsSyncNotifier
+  | NsRsStart
+  | NsRsBackgroundSync
+  | NsRsGhostSync
   | NsWebServer
   | NsTTLMonitor
   | NsFileAllocator
