@@ -29,22 +29,22 @@ logline year = Just <$> line'
   <|> toeol *> pure Nothing
  where
   line' = do
-    d  <- date year
-    ns <- parseNamespace <* spc
-    c  <- parseContent ns
-    return $ LogLine d ns c
+    d <- date year
+    t <- parseThread <* spc
+    c <- parseContent t
+    return $ LogLine d t c
 
 
-parseContent :: LogNamespace -> Parser LogContent
-parseContent ns =
-  case ns of
-    (NsConnection _) ->
+parseContent :: LogThread -> Parser LogContent
+parseContent t =
+  case t of
+    (LtConnection _) ->
       (LcQuery <$> query "query") <|>
       (LcGetMore <$> query "getmore") <|>
       (LcUpdate <$> update) <|>
       (LcEndConnection <$> endConn) <|>
       other
-    NsInitAndListen ->
+    LtInitAndListen ->
       (LcAcceptConnection <$> acceptConn) <|>
       other
     _ ->
@@ -92,13 +92,13 @@ update = do
   return $ UpdateInfo ns q u ci
 
 
-parseNamespace :: Parser LogNamespace
-parseNamespace =
-  char '[' *> namespace <* char ']'
+parseThread :: Parser LogThread
+parseThread =
+  char '[' *> thread <* char ']'
 
 
-namespace :: Parser LogNamespace
-namespace =
+thread :: Parser LogThread
+thread =
   connection <|>
   replicaSet <|>
   initAndListen <|>
@@ -107,24 +107,24 @@ namespace =
   fileAllocator <|>
   other
  where
-  initAndListen = "initandlisten" *> pure NsInitAndListen
-  fileAllocator = "FileAllocator" *> pure NsFileAllocator
-  ttlMonitor    = "TTLMonitor" *> pure NsTTLMonitor
-  webServer     = "websvr" *> pure NsWebServer
-  connection    = "conn" *> (NsConnection <$> decimal)
-  other = NsOther <$> takeTill (== ']')
+  initAndListen = "initandlisten" *> pure LtInitAndListen
+  fileAllocator = "FileAllocator" *> pure LtFileAllocator
+  ttlMonitor    = "TTLMonitor" *> pure LtTTLMonitor
+  webServer     = "websvr" *> pure LtWebServer
+  connection    = "conn" *> (LtConnection <$> decimal)
+  other = LtOther <$> takeTill (== ']')
 
 
-replicaSet :: Parser LogNamespace
+replicaSet :: Parser LogThread
 replicaSet =
   string "rs" *> choice
-    [ "HealthPoll" *> pure NsRsHealthPoll
-    , "Mgr" *> pure NsRsManager
-    , "GhostSync" *> pure NsRsGhostSync
-    , "BackgroundSync" *> pure NsRsBackgroundSync
-    , "SyncNotifier" *> pure NsRsSyncNotifier
-    , "Sync" *> pure NsRsSync
-    , "Start" *> pure NsRsStart
+    [ "HealthPoll" *> pure LtRsHealthPoll
+    , "Mgr" *> pure LtRsManager
+    , "GhostSync" *> pure LtRsGhostSync
+    , "BackgroundSync" *> pure LtRsBackgroundSync
+    , "SyncNotifier" *> pure LtRsSyncNotifier
+    , "Sync" *> pure LtRsSync
+    , "Start" *> pure LtRsStart
     ]
 
 

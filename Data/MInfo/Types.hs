@@ -125,20 +125,20 @@ data MongoElement =
   deriving ( Show, Eq, Ord )
 
 
-data LogNamespace =
-    NsRsHealthPoll
-  | NsRsManager
-  | NsRsSync
-  | NsRsSyncNotifier
-  | NsRsStart
-  | NsRsBackgroundSync
-  | NsRsGhostSync
-  | NsWebServer
-  | NsTTLMonitor
-  | NsFileAllocator
-  | NsInitAndListen
-  | NsConnection Integer
-  | NsOther BS.ByteString
+data LogThread =
+    LtRsHealthPoll
+  | LtRsManager
+  | LtRsSync
+  | LtRsSyncNotifier
+  | LtRsStart
+  | LtRsBackgroundSync
+  | LtRsGhostSync
+  | LtWebServer
+  | LtTTLMonitor
+  | LtFileAllocator
+  | LtInitAndListen
+  | LtConnection Integer
+  | LtOther BS.ByteString
   deriving ( Show, Eq, Ord )
 
 
@@ -201,9 +201,9 @@ emptyCI = CI
 
 
 data LogLine = LogLine
-  { lTime      :: UTCTime
-  , lNamespace :: LogNamespace
-  , lContent   :: !LogContent
+  { lTime    :: UTCTime
+  , lThread  :: LogThread
+  , lContent :: !LogContent
   } deriving ( Show, Eq, Ord )
 
 
