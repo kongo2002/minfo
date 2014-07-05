@@ -28,20 +28,25 @@ logline :: Integer -> Parser (Maybe LogLine)
 logline year = Just <$> line'
   <|> toeol *> pure Nothing
  where
-  line' = LogLine
-    <$> date year
-    <*> parseNamespace <* spc
-    <*> parseContent
+  line' = do
+    d  <- date year
+    ns <- parseNamespace <* spc
+    c  <- parseContent ns
+    return $ LogLine d ns c
 
 
-parseContent :: Parser LogContent
-parseContent =
-  (LcQuery <$> query "query") <|>
-  (LcGetMore <$> query "getmore") <|>
-  (LcUpdate <$> update) <|>
-  (LcAcceptConnection <$> acceptConn) <|>
-  (LcEndConnection <$> endConn) <|>
-  other
+parseContent :: LogNamespace -> Parser LogContent
+parseContent ns =
+  case ns of
+    (NsConnection _) ->
+      (LcQuery <$> query "query") <|>
+      (LcGetMore <$> query "getmore") <|>
+      (LcUpdate <$> update) <|>
+      other
+    _ ->
+      (LcAcceptConnection <$> acceptConn) <|>
+      (LcEndConnection <$> endConn) <|>
+      other
  where
   other = toeol *> pure LcOther
 
