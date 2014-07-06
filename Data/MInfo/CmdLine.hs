@@ -96,6 +96,7 @@ usage =
     , ""
     , " queries      accumulate queries by their execution time"
     , " connections  calculate connection state changes"
+    , " restarts     filter for all (re)starts of the database"
     , ""
     , "In case no FILE and no -i option is specified the"
     , "input is read from stdin."
