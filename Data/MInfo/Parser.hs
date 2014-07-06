@@ -46,6 +46,7 @@ parseContent t =
       other
     LtInitAndListen ->
       (LcAcceptConnection <$> acceptConn) <|>
+      (LcStart <$> mongoStart) <|>
       other
     _ ->
       other
@@ -66,6 +67,12 @@ acceptConn =
 endConn :: Parser BS.ByteString
 endConn =
   string "end connection " *> takeTill (== ':') <* toeol
+
+
+mongoStart :: Parser BS.ByteString
+mongoStart =
+  -- TODO: parse version numbers?
+  string "db version v" *> takeTill (== ',') <* toeol
 
 
 query' :: BS.ByteString -> Parser MongoElement

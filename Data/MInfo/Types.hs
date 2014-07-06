@@ -148,6 +148,7 @@ data LogContent =
   | LcUpdate !UpdateInfo
   | LcAcceptConnection BS.ByteString
   | LcEndConnection BS.ByteString
+  | LcStart BS.ByteString
   | LcOther
   deriving ( Show, Eq, Ord )
 
