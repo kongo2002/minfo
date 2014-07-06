@@ -71,8 +71,9 @@ endConn =
 
 mongoStart :: Parser BS.ByteString
 mongoStart =
-  -- TODO: parse version numbers?
-  string "db version v" *> takeTill (== ',') <* toeol
+  string "db version v" *> takeTill delim <* toeol
+ where
+  delim c = c == ',' || iseol c
 
 
 query' :: BS.ByteString -> Parser MongoElement

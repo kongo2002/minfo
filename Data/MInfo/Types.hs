@@ -211,6 +211,7 @@ data LogLine = LogLine
 data Operations =
     Queries
   | Connections
+  | Restarts
 
 
 data SortOrder =

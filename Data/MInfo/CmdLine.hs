@@ -132,6 +132,7 @@ parseOpts args =
 
   op' (op "queries" -> True)     = Just Queries
   op' (op "connections" -> True) = Just Connections
+  op' (op "restarts" -> True)    = Just Restarts
   op' _                          = Nothing
 
 
