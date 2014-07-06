@@ -60,6 +60,9 @@ data MongoOperator =
   | Position
   | Bit
   | Isolated
+  -- commands (internal)
+  | Explain
+  | Query
   deriving ( Eq, Ord )
 
 
@@ -110,6 +113,8 @@ instance (Show MongoOperator) where
   show Position      = "$position"
   show Bit           = "$bit"
   show Isolated      = "$isolated"
+  show Explain       = "$explain"
+  show Query         = "$query"
 
 
 data MongoKey =

@@ -26,17 +26,25 @@ bson str =
 tests :: [Test]
 tests =
   [ testGroup "BSON parsing"
-    [ testCase "empty document" (MObject [] @=? bson "{}")
-    , testCase "empty document" (MObject [] @=? bson " {} ")
-    , testCase "empty document" (MObject [] @=? bson "{  }")
-    , testCase "number" (MValue @=? bson "12")
-    , testCase "number" (MValue @=? bson "0.2352")
-    , testCase "number" (MValue @=? bson "-152.23")
-    , testCase "number" (MValue @=? bson " 52 ")
-    , testCase "string" (MValue @=? bson "\"foo\"")
-    , testCase "string" (MValue @=? bson "\"  foo  \"")
-    , testCase "string" (MValue @=? bson "  \"  foo  \" ")
-    , testCase "string" (MValue @=? bson "\"  { }  \"")
-    , testCase "string" (MValue @=? bson "\" \\\"   \"")
+    [ testGroup "values"
+      [ testCase "empty document" (MObject [] @=? bson "{}")
+      , testCase "empty document" (MObject [] @=? bson " {} ")
+      , testCase "empty document" (MObject [] @=? bson "{  }")
+      , testCase "number" (MValue @=? bson "12")
+      , testCase "number" (MValue @=? bson "0.2352")
+      , testCase "number" (MValue @=? bson "-152.23")
+      , testCase "number" (MValue @=? bson " 52 ")
+      , testCase "string" (MValue @=? bson "\"foo\"")
+      , testCase "string" (MValue @=? bson "\"  foo  \"")
+      , testCase "string" (MValue @=? bson "  \"  foo  \" ")
+      , testCase "string" (MValue @=? bson "\"  { }  \"")
+      , testCase "string" (MValue @=? bson "\" \\\"   \"")
+      ]
+    , testGroup "simplification"
+      [ testCase "remove $explain" (MObject [] @=? bson "{$explain : 1}")
+      , testCase "remove $explain" (MObject [(MKey "foo", MValue)] @=? bson "{$explain : 1, foo:4}")
+      , testCase "flatten $query" (MObject [(MKey "foo", MValue)] @=? bson "{$query : {foo:32}}")
+      , testCase "flatten $query" (MObject [(MKey "foo", MValue), (MKey "zap", MValue)] @=? bson "{$query : {foo:32,zap:0}}")
+      ]
     ]
   ]

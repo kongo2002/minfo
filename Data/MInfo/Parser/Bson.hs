@@ -6,6 +6,7 @@ import           Prelude hiding ( GT, LT )
 import           Control.Applicative
 import           Data.Attoparsec.ByteString.Char8
 import qualified Data.ByteString.Char8 as BS
+import           Data.List      ( sort )
 
 import           Data.MInfo.Types
 
@@ -98,6 +99,8 @@ operator =
     , op "nor" Nor
     , op "where" Where
     , op "regex" Regex
+    , op "explain" Explain
+    , op "query" Query
     , op "mod" Mod
     , op "text" Text
     , op "geoWithin" GeoWithin
@@ -136,16 +139,24 @@ operator =
 
 simplify :: MongoElement -> MongoElement
 simplify MValue       = MValue
-simplify (MList xs)   = MList $ map simplify xs
+simplify (MList xs)   = MList $ sort $ map simplify xs
 simplify (MObject xs) =
-  MObject $ map go xs
+  MObject $ sort $ foldr go [] xs
  where
-  go x@(MKey _, _) = x
-  go x@(MOperator op, _v) =
+  go x@(MKey _, _) acc = x : acc
+  go x@(MOperator op, v) acc =
     case op of
-      In    -> (MOperator op, single)
-      NotIn -> (MOperator op, single)
-      _     -> x
+      -- skip $explain for now
+      Explain -> acc
+      -- reduce $in and $nin to [1]
+      In    -> (MOperator op, single) : acc
+      NotIn -> (MOperator op, single) : acc
+      -- remove outer $query elements
+      Query ->
+        case v of
+          (MObject vs) -> vs ++ acc
+          _ -> x : acc
+      _     -> x : acc
 
   single = MList [MValue]
 
