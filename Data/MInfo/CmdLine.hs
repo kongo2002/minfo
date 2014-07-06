@@ -111,7 +111,7 @@ usage =
 
 parseOpts :: [String] -> IO Options
 parseOpts args =
-  case getOpt RequireOrder options args of
+  case getOpt Permute options args of
     -- successful
     (o, ps, []) ->
       foldl (>>=) (return defOptions) o >>= pos ps
