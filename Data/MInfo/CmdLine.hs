@@ -82,6 +82,7 @@ options =
   sortOrder "min" o = return o { oSort = ByMin }
   sortOrder "max" o = return o { oSort = ByMax }
   sortOrder "avg" o = return o { oSort = ByAvg }
+  sortOrder "ns"  o = return o { oSort = ByNamespace }
   sortOrder _     _ = errExit "unknown sort order specified"
 
 
@@ -102,7 +103,8 @@ usage =
     , "input is read from stdin."
     , ""
     , "The sort order may be one of 'sum', 'min', 'max' and 'avg'"
-    , "and defaults to 'sum' if none is specified."
+    , "and defaults to 'sum' if none is specified. You may sort"
+    , "by namespace ('ns') as well."
     , ""
     , "The output is written by default to stdout but may be"
     , "written to a file via the -o option."

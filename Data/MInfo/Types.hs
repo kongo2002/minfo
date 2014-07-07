@@ -224,6 +224,7 @@ data SortOrder =
   | ByMin
   | ByMax
   | ByAvg
+  | ByNamespace
   deriving ( Eq )
 
 

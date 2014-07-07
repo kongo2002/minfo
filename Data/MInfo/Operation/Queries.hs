@@ -22,9 +22,7 @@ data QV = QV
   ![Int]
 
 
-type SortPredicate = QV
-                  -> QV
-                  -> Ordering
+type SortPredicate = (MapKey, QV) -> (MapKey, QV) -> Ordering
 
 type MapKey   = (BS.ByteString, MongoElement)
 type QueryMap = M.Map MapKey QV
@@ -34,10 +32,11 @@ queries :: SortOrder -> [LogLine] -> LBS.ByteString
 queries s =
   output (sort s) . queries'
  where
-  sort BySum = bySum
-  sort ByMin = byMin
-  sort ByMax = byMax
-  sort ByAvg = byAvg
+  sort BySum       = bySum
+  sort ByMin       = byMin
+  sort ByMax       = byMax
+  sort ByAvg       = byAvg
+  sort ByNamespace = byNamespace
 
 
 output :: SortPredicate -> QueryMap -> LBS.ByteString
@@ -48,8 +47,7 @@ output order qm =
  where
   nl      = charUtf8 '\n'
   tab     = stringUtf8 "    "
-  ord a b = order (snd a) (snd b)
-  input   = sortBy ord $ M.toList qm
+  input   = sortBy order $ M.toList qm
   header  = table "NS:" "COUNT:" "MIN:" "MAX:" "AVG:" "SUM:"
 
   -- process one query aggregation
@@ -98,16 +96,19 @@ avg (QV c _ _ s _) = fromIntegral s / fromIntegral c
 
 
 byMin :: SortPredicate
-byMin (QV _ s1 _ _ _) (QV _ s2 _ _ _) = compare s2 s1
+byMin (_, QV _ s1 _ _ _) (_, QV _ s2 _ _ _) = compare s2 s1
 
 byMax :: SortPredicate
-byMax (QV _ _ s1 _ _) (QV _ _ s2 _ _) = compare s2 s1
+byMax (_, QV _ _ s1 _ _) (_, QV _ _ s2 _ _) = compare s2 s1
 
 bySum :: SortPredicate
-bySum (QV _ _ _ s1 _) (QV _ _ _ s2 _) = compare s2 s1
+bySum (_, QV _ _ _ s1 _) (_, QV _ _ _ s2 _) = compare s2 s1
 
 byAvg :: SortPredicate
-byAvg t1 t2 = compare (avg t2) (avg t1)
+byAvg (_, t1) (_, t2) = compare (avg t2) (avg t1)
+
+byNamespace :: SortPredicate
+byNamespace (n1, _) (n2, _) = compare n1 n2
 
 
 -- vim: set et sw=2 sts=2 tw=80:
