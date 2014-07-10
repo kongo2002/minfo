@@ -4,7 +4,7 @@ module Data.MInfo.Parser
   ( parseFile
   ) where
 
-import           Prelude hiding     ( take )
+import           Prelude hiding ( take )
 import           Control.Applicative
 import qualified Data.Attoparsec.ByteString.Lazy as AL
 import           Data.Attoparsec.ByteString.Char8
@@ -12,7 +12,7 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as BL
 import           Data.Time
 
-import Data.MInfo.Parser.Bson       ( parseDocument )
+import Data.MInfo.Parser.Bson   ( parseDocument )
 import Data.MInfo.Types
 
 

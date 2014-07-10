@@ -21,3 +21,6 @@ restarts ls =
     pad 30 (show t) <>
     byteString v <> charUtf8 '\n' <>
     acc
+
+
+-- vim: set et sw=2 sts=2 tw=80:
