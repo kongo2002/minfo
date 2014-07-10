@@ -140,7 +140,8 @@ commandInfos :: Parser CommandInfo
 commandInfos =
   commandInfo emptyCI >>= go
  where
-  go ci = (char ' ' *> commandInfo ci >>= go) <|> pure ci
+  delim c = c `notElem` [' ', '\n', '\r']
+  go ci = (skipWhile delim *> char ' ' *> commandInfo ci >>= go) <|> pure ci
 
 
 commandInfo :: CommandInfo -> Parser CommandInfo
