@@ -238,4 +238,11 @@ data Options = Options
   }
 
 
+data ParserInfo = ParserInfo
+  { piDateRange    :: Maybe (UTCTime, UTCTime)
+  , piThreadFilter :: (LogThread -> Bool)
+  , piYear         :: Integer
+  }
+
+
 -- vim: set et sw=2 sts=2 tw=80:

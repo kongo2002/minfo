@@ -15,8 +15,9 @@ main = do
   opts     <- parseOpts =<< getArgs
   year     <- getCurrentYear
   loglines <- oInput opts
+  let info = ParserInfo Nothing (const True) year
 
-  LBS.putStr $ getOperation opts (parseFile year loglines)
+  LBS.putStr $ getOperation opts (parseFile info loglines)
 
 
 -- vim: set et sw=2 sts=2 tw=80:

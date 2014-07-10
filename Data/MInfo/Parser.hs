@@ -16,18 +16,19 @@ import Data.MInfo.Parser.Bson       ( parseDocument )
 import Data.MInfo.Types
 
 
-parseFile :: Integer -> BL.ByteString -> [LogLine]
-parseFile year ls =
-  case AL.parse (logline year <* eol) ls of
+parseFile :: ParserInfo -> BL.ByteString -> [LogLine]
+parseFile info ls =
+  case AL.parse (logline info <* eol) ls of
     AL.Fail {}           -> []
-    AL.Done ls' (Just l) -> l : parseFile year ls'
-    AL.Done ls' _        -> parseFile year ls'
+    AL.Done ls' (Just l) -> l : parseFile info ls'
+    AL.Done ls' _        -> parseFile info ls'
 
 
-logline :: Integer -> Parser (Maybe LogLine)
-logline year = Just <$> line'
+logline :: ParserInfo -> Parser (Maybe LogLine)
+logline info = Just <$> line'
   <|> toeol *> pure Nothing
  where
+  year  = piYear info
   line' = do
     d <- date year
     t <- parseThread <* spc
