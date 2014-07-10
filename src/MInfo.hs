@@ -1,6 +1,5 @@
 module Main where
 
-import           Control.Applicative
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import           System.Environment ( getArgs )
 
@@ -17,7 +16,7 @@ main = do
   year     <- getCurrentYear
   loglines <- oInput opts
 
-  let range = (,) <$> oFrom opts <*> oTo opts
+  let range = (oFrom opts, oTo opts)
       info  = ParserInfo range (const True) year
 
   LBS.putStr $ getOperation opts (parseFile info loglines)

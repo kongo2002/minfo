@@ -194,7 +194,7 @@ parseOpts args =
   case getOpt Permute options args of
     -- successful
     (o, ps, []) ->
-      foldl (>>=) (return defOptions) o >>= pos ps >>= sanitize
+      foldl (>>=) (return defOptions) o >>= pos ps >>= check
     -- errors
     (_, _, es) -> ioError (userError (concat es ++ usage))
  where
@@ -211,14 +211,12 @@ parseOpts args =
         _       -> return o
     file _ o = return o
 
-  -- default the 'to' date to the current system date
-  -- in case the 'from' date was set
-  sanitize opts =
-    case oFrom opts of
-      Just _ -> do
-        now <- getCurrentTime
-        return opts { oTo = Just now }
-      Nothing -> return opts
+  check opts =
+    case cmp of
+      Just False -> errExit "invalid date range specified"
+      _ -> return opts
+   where
+    cmp = (<) <$> oFrom opts <*> oTo opts
 
   op' (op "queries" -> True)     = Just Queries
   op' (op "connections" -> True) = Just Connections

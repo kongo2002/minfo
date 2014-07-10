@@ -241,7 +241,7 @@ data Options = Options
 
 
 data ParserInfo = ParserInfo
-  { piDateRange    :: Maybe (UTCTime, UTCTime)
+  { piDateRange    :: (Maybe UTCTime, Maybe UTCTime)
   , piThreadFilter :: LogThread -> Bool
   , piYear         :: Integer
   }

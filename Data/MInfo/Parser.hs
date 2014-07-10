@@ -41,12 +41,13 @@ logline info = line' <|> toeol *> pure Nothing
 
 inDateRange :: ParserInfo -> UTCTime -> Bool
 inDateRange info d =
-  case range of
-    Nothing -> True
-    Just (from, to) ->
-      d >= from && d <= to
+  check from (<=) && check to (>=)
  where
-  range = piDateRange info
+  (from, to) = piDateRange info
+
+  check Nothing   _ = True
+  check (Just d') f = d' `f` d
+  {-# INLINE check #-}
 
 
 parseContent :: LogThread -> Parser LogContent
@@ -154,7 +155,7 @@ commandInfos :: Parser CommandInfo
 commandInfos =
   commandInfo emptyCI >>= go
  where
-  delim c = c `notElem` [' ', '\n', '\r']
+  delim c = c `notElem` " \n\r"
   go ci = (skipWhile delim *> char ' ' *> commandInfo ci >>= go) <|> pure ci
 
 
