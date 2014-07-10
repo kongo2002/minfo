@@ -25,15 +25,28 @@ parseFile info ls =
 
 
 logline :: ParserInfo -> Parser (Maybe LogLine)
-logline info = Just <$> line'
-  <|> toeol *> pure Nothing
+logline info = line' <|> toeol *> pure Nothing
  where
-  year  = piYear info
-  line' = do
+  year    = piYear info
+  inRange = inDateRange info
+  line'   = do
     d <- date year
-    t <- parseThread <* spc
-    c <- parseContent t
-    return $ LogLine d t c
+    if inRange d
+      then do
+        t <- parseThread <* spc
+        c <- parseContent t
+        return . Just $ LogLine d t c
+      else toeol >> return Nothing
+
+
+inDateRange :: ParserInfo -> UTCTime -> Bool
+inDateRange info d =
+  case range of
+    Nothing -> True
+    Just (from, to) ->
+      d >= from && d <= to
+ where
+  range = piDateRange info
 
 
 parseContent :: LogThread -> Parser LogContent
