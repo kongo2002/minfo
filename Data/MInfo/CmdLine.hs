@@ -4,8 +4,11 @@ module Data.MInfo.CmdLine
   ( parseOpts
   ) where
 
+import           Control.Applicative
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import           Data.List        ( inits )
+import           Data.Maybe       ( fromMaybe )
+import           Data.Time
 import           System.Console.GetOpt
 import           System.Directory ( doesFileExist )
 import           System.Exit      ( exitWith, ExitCode(..), exitSuccess )
@@ -31,6 +34,8 @@ defOptions = Options
   , oOutput    = LBS.putStrLn
   , oSort      = BySum
   , oOperation = Queries
+  , oFrom      = Nothing
+  , oTo        = Nothing
   }
 
 
@@ -54,6 +59,18 @@ options =
       "ORDER")
     "sort order"
 
+  , Option "f" ["from"]
+    (ReqArg
+      parseFrom
+      "DATEFORMAT")
+    "from date (optional)"
+
+  , Option "t" ["to"]
+    (ReqArg
+      parseTo
+      "DATEFORMAT")
+    "to date (optional)"
+
   , Option "v" ["verbose"]
     (NoArg
       (\opt -> return opt { oVerbose = True }))
@@ -74,8 +91,23 @@ options =
   useFile file opt = do
     exists <- doesFileExist file
     if exists
-    then return $ opt { oInput = readInput file, oFile = Just file }
+    then return opt { oInput = readInput file, oFile = Just file }
     else errExit "specified file does not exist"
+
+  -- parse from date
+  parseFrom fmt opt = do
+    now <- getCurrentTime
+    case parseDate now fmt of
+      Just date -> return opt { oFrom = Just date }
+      Nothing   -> return opt
+
+  -- parse to date
+  parseTo fmt opt = do
+    now <- getCurrentTime
+    let from = fromMaybe now (oFrom opt)
+    case parseDate from fmt of
+      Just date -> return opt { oTo = Just date }
+      Nothing   -> return opt
 
   -- determine sort order
   sortOrder "sum" o = return o { oSort = BySum }
@@ -84,6 +116,52 @@ options =
   sortOrder "avg" o = return o { oSort = ByAvg }
   sortOrder "ns"  o = return o { oSort = ByNamespace }
   sortOrder _     _ = errExit "unknown sort order specified"
+
+
+parseDate :: UTCTime -> String -> Maybe UTCTime
+parseDate rel d =
+  fmt d rel
+ where
+  minute = 60
+  hour   = 60 * minute
+  day    = 24 * hour
+
+  add = addUTCTime . fromInteger
+  sub = add . (*(-1))
+
+  unit :: String -> Maybe Integer
+  unit "s"       = Just 1
+  unit "second"  = Just 1
+  unit "seconds" = Just 1
+  unit "h"       = Just hour
+  unit "hour"    = Just hour
+  unit "hours"   = Just hour
+  unit "m"       = Just minute
+  unit "minute"  = Just minute
+  unit "minutes" = Just minute
+  unit "d"       = Just day
+  unit "day"     = Just day
+  unit "days"    = Just day
+  unit _         = Nothing
+
+  fmt :: String -> UTCTime -> Maybe UTCTime
+  fmt "today" n     = Just n
+  fmt "tomorrow" n  = Just $ add day n
+  fmt "yesterday" n = Just $ sub day n
+  fmt ('+':xs) n    = fmt' add xs n
+  fmt ('-':xs) n    = fmt' sub xs n
+  fmt _ _           = Nothing
+
+  fmt' func xs n =
+    case int xs of
+      Just (x, us) -> flip func n . (*x) <$> unit us
+      _ -> Nothing
+
+  int input =
+    case reads input of
+      []        -> Nothing
+      [(_, [])] -> Nothing
+      (x:_)     -> Just x
 
 
 usage :: String
@@ -116,7 +194,7 @@ parseOpts args =
   case getOpt Permute options args of
     -- successful
     (o, ps, []) ->
-      foldl (>>=) (return defOptions) o >>= pos ps
+      foldl (>>=) (return defOptions) o >>= pos ps >>= sanitize
     -- errors
     (_, _, es) -> ioError (userError (concat es ++ usage))
  where
@@ -129,9 +207,18 @@ parseOpts args =
    where
     file [f] o =
       case oFile opts of
-        Nothing -> return $ o { oInput = readInput f }
+        Nothing -> return o { oInput = readInput f }
         _       -> return o
     file _ o = return o
+
+  -- default the 'to' date to the current system date
+  -- in case the 'from' date was set
+  sanitize opts =
+    case oFrom opts of
+      Just _ -> do
+        now <- getCurrentTime
+        return opts { oTo = Just now }
+      Nothing -> return opts
 
   op' (op "queries" -> True)     = Just Queries
   op' (op "connections" -> True) = Just Connections

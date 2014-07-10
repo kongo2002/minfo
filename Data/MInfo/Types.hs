@@ -235,12 +235,14 @@ data Options = Options
   , oOutput    :: LBS.ByteString -> IO ()
   , oSort      :: SortOrder
   , oOperation :: Operations
+  , oFrom      :: Maybe UTCTime
+  , oTo        :: Maybe UTCTime
   }
 
 
 data ParserInfo = ParserInfo
   { piDateRange    :: Maybe (UTCTime, UTCTime)
-  , piThreadFilter :: (LogThread -> Bool)
+  , piThreadFilter :: LogThread -> Bool
   , piYear         :: Integer
   }
 
