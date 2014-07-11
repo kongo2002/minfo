@@ -1,5 +1,6 @@
 module Data.MInfo.Operation
-  ( getOperation
+  ( operation
+  , parserFilter
   ) where
 
 import qualified Data.ByteString.Lazy as LBS
@@ -13,12 +14,23 @@ import Data.MInfo.Operation.Restarts    ( restarts )
 type Operation = [LogLine] -> LBS.ByteString
 
 
-getOperation :: Options -> Operation
-getOperation o =
+operation :: Options -> Operation
+operation o =
   case oOperation o of
     Queries     -> queries (oSort o)
     Connections -> connections
     Restarts    -> restarts
+
+
+parserFilter :: Operations -> LogThread -> Bool
+parserFilter op =
+  case op of
+    Queries     -> isConn
+    Connections -> \x -> x == LtInitAndListen || isConn x
+    Restarts    -> (== LtInitAndListen)
+ where
+  isConn (LtConnection _) = True
+  isConn _                = False
 
 
 -- vim: set et sw=2 sts=2 tw=80:

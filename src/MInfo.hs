@@ -17,9 +17,10 @@ main = do
   loglines <- oInput opts
 
   let range = (oFrom opts, oTo opts)
-      info  = ParserInfo range (const True) year
+      filt  = parserFilter (oOperation opts)
+      info  = ParserInfo range filt year
 
-  LBS.putStr $ getOperation opts (parseFile info loglines)
+  LBS.putStr $ operation opts (parseFile info loglines)
 
 
 -- vim: set et sw=2 sts=2 tw=80:

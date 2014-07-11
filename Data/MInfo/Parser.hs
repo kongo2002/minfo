@@ -29,14 +29,24 @@ logline info = line' <|> toeol *> pure Nothing
  where
   year    = piYear info
   inRange = inDateRange info
+  tfilter = piThreadFilter info
+
   line'   = do
     d <- date year
+    -- check if the date matches the optional
+    -- datetime filter
     if inRange d
       then do
         t <- parseThread <* spc
-        c <- parseContent t
-        return . Just $ LogLine d t c
-      else toeol >> return Nothing
+        -- see if we have to parse the specific thread
+        -- type at all given the current operation
+        if tfilter t then do
+          c <- parseContent t
+          return . Just $ LogLine d t c
+        else skip
+      else skip
+
+  skip = toeol >> return Nothing
 
 
 inDateRange :: ParserInfo -> UTCTime -> Bool
