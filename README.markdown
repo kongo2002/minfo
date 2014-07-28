@@ -55,6 +55,7 @@ You can sort the output via the `--sort` or `-s` parameter like the following:
     $ minfo queries -s max /var/log/mongodb.log
 
 The order may be one of `min`, `max`, `avg` or `sum` and defaults to `sum`.
+Using `ns` you can sort by the operation namespace (i.e. "test.Users") as well.
 
 
 ### Connections
