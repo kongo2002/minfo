@@ -109,7 +109,7 @@ query' t =
 query :: BS.ByteString -> Parser QueryInfo
 query t = do
   ns <- typens t
-  q  <- query' "query"
+  q  <- query' "query" <|> return (MObject [])
   ci <- commandInfos
   toeol
   return $ QueryInfo ns q ci
