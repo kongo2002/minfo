@@ -2,8 +2,10 @@
 
 module Main ( main ) where
 
+import qualified Data.Attoparsec.ByteString as A
 import           Data.Attoparsec.ByteString.Char8 ( parseOnly )
 import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy as BL
 
 import           Test.HUnit                       ( (@=?) )
 import           Test.Framework                   ( defaultMain, testGroup, Test )
@@ -18,6 +20,7 @@ main :: IO ()
 main = defaultMain tests
 
 
+extract :: A.Parser a -> BS.ByteString -> a
 extract parser input =
   let (Right result) = parseOnly parser input
   in  result
@@ -27,6 +30,7 @@ bson :: BS.ByteString -> MongoElement
 bson str = extract parseDocument str
 
 
+parsed :: BL.ByteString -> Int
 parsed str =
   let info = ParserInfo (Nothing, Nothing) (const True) 2015
   in  length $ parseFile info str
