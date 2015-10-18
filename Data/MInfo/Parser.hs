@@ -10,6 +10,7 @@ import qualified Data.Attoparsec.ByteString.Lazy as AL
 import           Data.Attoparsec.ByteString.Char8
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as BL
+import           Data.Char      ( isAsciiUpper )
 import           Data.Time
 
 import Data.MInfo.Parser.Bson   ( parseDocument )
@@ -127,7 +128,14 @@ update = do
 
 parseThread :: Parser LogThread
 parseThread =
-  char '[' *> thread <* char ']'
+  thrd <|> (section *> thrd)
+ where
+  thrd = char '[' *> thread <* char ']'
+
+  -- since mongodb 3.0 there is a new 'section' in front
+  -- like 'I CONTROL '
+  section = let upper = skipWhile isAsciiUpper
+            in  upper >> spc >> upper >> spc
 
 
 thread :: Parser LogThread
@@ -165,7 +173,7 @@ commandInfos :: Parser CommandInfo
 commandInfos =
   commandInfo emptyCI >>= go
  where
-  delim c = c `notElem` " \n\r"
+  delim c = c `notElem` (" \n\r" :: String)
   go ci = (skipWhile delim *> char ' ' *> commandInfo ci >>= go) <|> pure ci
 
 

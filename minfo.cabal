@@ -17,12 +17,12 @@ build-type:         Simple
 
 
 library
-  build-depends:    base >= 4.6 && < 4.7,
+  build-depends:    base >= 4.6 && < 4.9,
                     bytestring,
                     containers,
                     directory,
                     time,
-                    attoparsec >= 0.11 && < 0.13
+                    attoparsec >= 0.11 && < 0.14
 
   exposed-modules:  Data.MInfo.CmdLine
                     Data.MInfo.Encoder
@@ -48,7 +48,7 @@ executable minfo
   hs-source-dirs:   src
 
   build-depends:    minfo,
-                    base >= 4.6 && < 4.7,
+                    base >= 4.6 && < 4.9,
                     bytestring,
                     containers
 
