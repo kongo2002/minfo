@@ -130,16 +130,20 @@ update = do
 aggregate :: Parser AggregateInfo
 aggregate = do
   ns <- typens "command"
-  string "command: aggregate { aggregate: "
+  _ <- string "command: aggregate { aggregate: "
   collection <- quoted
-  string ", pipeline: "
+  _ <- string ", pipeline: "
   pipeline <- parseDocument
   spc
   ci <- commandInfos
   toeol
-  return $ AggregateInfo ns collection pipeline ci
+  return $ AggregateInfo (ns' ns collection) pipeline ci
  where
   quoted = char '"' *> takeWhile1 (/= '"') <* char '"'
+
+  -- convert 'db.$cmd' and 'collection' to 'db.collection'
+  ns' ns coll =
+    BS.takeWhile (/= '$') ns `BS.append` coll
 
 
 parseThread :: Parser LogThread

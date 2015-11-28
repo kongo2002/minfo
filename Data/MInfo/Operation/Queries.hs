@@ -73,9 +73,10 @@ queries' ls =
 
   query (LogLine _ _ content) =
     case content of
-      (LcQuery (QueryInfo ns q ci))     -> [((ns, q), acc ci)]
-      (LcGetMore (QueryInfo ns q ci))   -> [((ns, q), acc ci)]
-      (LcUpdate (UpdateInfo ns q _ ci)) -> [((ns, q), acc ci)]
+      (LcQuery (QueryInfo ns q ci))         -> [((ns, q), acc ci)]
+      (LcGetMore (QueryInfo ns q ci))       -> [((ns, q), acc ci)]
+      (LcUpdate (UpdateInfo ns q _ ci))     -> [((ns, q), acc ci)]
+      (LcAggregate (AggregateInfo ns q ci)) -> [((ns, q), acc ci)]
       _ -> []
 
   acc ci = QV 1 ms ms (toInteger ms) ms'

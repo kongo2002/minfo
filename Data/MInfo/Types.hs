@@ -176,7 +176,6 @@ data UpdateInfo = UpdateInfo
 
 data AggregateInfo = AggregateInfo
   { aiNamespace  :: BS.ByteString
-  , aiCollection :: BS.ByteString
   , aiPipeline   :: MongoElement
   , aiInfos      :: CommandInfo
   } deriving ( Show, Eq, Ord )
