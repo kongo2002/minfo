@@ -68,6 +68,7 @@ parseContent t =
       (LcQuery <$> query "query") <|>
       (LcGetMore <$> query "getmore") <|>
       (LcUpdate <$> update) <|>
+      (LcAggregate <$> aggregate) <|>
       (LcEndConnection <$> endConn) <|>
       other
     LtInitAndListen ->
@@ -126,9 +127,24 @@ update = do
   return $ UpdateInfo ns q u ci
 
 
+aggregate :: Parser AggregateInfo
+aggregate = do
+  ns <- typens "command"
+  string "command: aggregate { aggregate: "
+  collection <- quoted
+  string ", pipeline: "
+  pipeline <- parseDocument
+  spc
+  ci <- commandInfos
+  toeol
+  return $ AggregateInfo ns collection pipeline ci
+ where
+  quoted = char '"' *> takeWhile1 (/= '"') <* char '"'
+
+
 parseThread :: Parser LogThread
 parseThread =
-  thrd <|> (section *> thrd)
+  (section *> thrd) <|> thrd
  where
   thrd = char '[' *> thread <* char ']'
 

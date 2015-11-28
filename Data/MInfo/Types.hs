@@ -151,6 +151,7 @@ data LogContent =
     LcQuery !QueryInfo
   | LcGetMore !QueryInfo
   | LcUpdate !UpdateInfo
+  | LcAggregate !AggregateInfo
   | LcAcceptConnection BS.ByteString
   | LcEndConnection BS.ByteString
   | LcStart BS.ByteString
@@ -170,6 +171,14 @@ data UpdateInfo = UpdateInfo
   , uiQuery     :: MongoElement
   , uiUpdate    :: MongoElement
   , uiInfos     :: CommandInfo
+  } deriving ( Show, Eq, Ord )
+
+
+data AggregateInfo = AggregateInfo
+  { aiNamespace  :: BS.ByteString
+  , aiCollection :: BS.ByteString
+  , aiPipeline   :: MongoElement
+  , aiInfos      :: CommandInfo
   } deriving ( Show, Eq, Ord )
 
 
